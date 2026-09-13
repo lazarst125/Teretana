@@ -1,0 +1,119 @@
+:root {
+  --boja-pozadina: #f7f7f5;
+  --boja-povrsina: #ffffff;
+  --boja-tekst: #1c1c1e;
+  --boja-tekst-blago: #4a4a4f;
+  --boja-akcenat: #0b5cad;
+  --boja-akcenat-tekst: #ffffff;
+  --boja-uspeh: #1d6b37;
+  --boja-greska: #a4161a;
+  --boja-ivica: #d6d6d1;
+  --razmak: 1rem;
+  --zaobljenje: 0.5rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--boja-tekst);
+  background: var(--boja-pozadina);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+:focus-visible {
+  outline: 3px solid var(--boja-akcenat);
+  outline-offset: 2px;
+}
+
+.preskoci-na-sadrzaj {
+  position: absolute;
+  left: -999px;
+}
+
+.preskoci-na-sadrzaj:focus {
+  left: var(--razmak);
+  top: var(--razmak);
+  padding: 0.5rem 1rem;
+  background: var(--boja-povrsina);
+}
+
+.zaglavlje,
+.podnozje {
+  background: var(--boja-povrsina);
+  border-color: var(--boja-ivica);
+  border-style: solid;
+  border-width: 0;
+  padding: var(--razmak) calc(var(--razmak) * 1.5);
+}
+
+.zaglavlje {
+  border-bottom-width: 1px;
+}
+
+.podnozje {
+  border-top-width: 1px;
+}
+
+.naziv-aplikacije {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.sadrzaj {
+  flex: 1;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: calc(var(--razmak) * 1.5);
+}
+
+button {
+  font: inherit;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--boja-akcenat);
+  border-radius: var(--zaobljenje);
+  background: var(--boja-akcenat);
+  color: var(--boja-akcenat-tekst);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.status-sistema {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--razmak);
+}
+
+.status-sistema h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.status-sistema p {
+  margin: 0;
+  color: var(--boja-tekst-blago);
+}
+
+.status-sistema p[data-stanje="ispravan"] {
+  color: var(--boja-uspeh);
+}
+
+.status-sistema p[data-stanje="neispravan"],
+.status-sistema p[data-stanje="greska"] {
+  color: var(--boja-greska);
+}
