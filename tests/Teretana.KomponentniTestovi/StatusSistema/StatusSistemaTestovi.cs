@@ -19,7 +19,7 @@ public sealed class StatusSistemaTestovi : KomponentniTest
     }
 
     [Test]
-    public async Task GetHealth_KadaJeSistemIspravan_VracaStatusHealthyISpisakProvera()
+    public async Task GetHealth_KadaJeBazaDostupna_VracaHealthySaIspravnomProveromBaze()
     {
         using var odgovor = await Klijent.GetAsync("/health");
 
@@ -29,7 +29,22 @@ public sealed class StatusSistemaTestovi : KomponentniTest
         Assert.Multiple(() =>
         {
             Assert.That(telo!.Status, Is.EqualTo("Healthy"));
-            Assert.That(telo.Provere, Is.Not.Null);
+            Assert.That(telo.Provere, Has.Exactly(1).Matches<ProveraTelo>(p => p.Naziv == "baza" && p.Status == "Healthy"));
+        });
+    }
+
+    [Test]
+    public async Task GetHealth_KadaBazaNijeDostupna_Vraca503Unhealthy()
+    {
+        File.Delete(Aplikacija.PutanjaBaze);
+
+        using var odgovor = await Klijent.GetAsync("/health");
+
+        var telo = await odgovor.Content.ReadFromJsonAsync<StatusSistemaTelo>();
+        Assert.Multiple(() =>
+        {
+            Assert.That(odgovor.StatusCode, Is.EqualTo(HttpStatusCode.ServiceUnavailable));
+            Assert.That(telo?.Status, Is.EqualTo("Unhealthy"));
         });
     }
 

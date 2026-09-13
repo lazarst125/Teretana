@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\Zajednicko\IzolovanaBaza.cs" Link="Infrastruktura\IzolovanaBaza.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Microsoft.Playwright" />
     <Using Include="Microsoft.Playwright.NUnit" />
     <Using Include="NUnit.Framework" />
