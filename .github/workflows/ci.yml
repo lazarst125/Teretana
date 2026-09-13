@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-i-testovi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore Teretana.slnx
+
+      - name: Provera formata koda
+        run: dotnet format Teretana.slnx --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build Teretana.slnx --configuration Release --no-restore
+
+      - name: Komponentni testovi (NUnit)
+        run: >-
+          dotnet test tests/Teretana.KomponentniTestovi
+          --configuration Release --no-build
+          --logger "trx;LogFileName=komponentni.trx"
+          --results-directory TestResults
+
+      # Fixture instalira sam browser, ali sistemske biblioteke za Linux traže --with-deps.
+      - name: Instalacija Chromium-a sa sistemskim zavisnostima
+        run: pwsh tests/Teretana.PlaywrightTestovi/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
+      - name: Playwright API i E2E testovi
+        run: >-
+          dotnet test tests/Teretana.PlaywrightTestovi
+          --configuration Release --no-build
+          --logger "trx;LogFileName=playwright.trx"
+          --results-directory TestResults
+
+      - name: Upload rezultata testova
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rezultati-testova
+          path: |
+            TestResults/
+            tests/Teretana.PlaywrightTestovi/bin/Release/net10.0/playwright-artefakti/
+          if-no-files-found: ignore
