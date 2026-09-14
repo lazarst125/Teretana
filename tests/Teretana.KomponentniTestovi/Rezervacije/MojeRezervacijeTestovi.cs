@@ -52,6 +52,20 @@ public sealed class MojeRezervacijeTestovi : KomponentniTest
     }
 
     [Test]
+    public async Task Moje_SortiranjePoPocetkuOpadajuce_VracaNajkasnijiTerminPrvi()
+    {
+        var trener = await NoviKorisnikUBaziAsync(Uloga.Trener);
+        var ja = await NoviKorisnikUBaziAsync(Uloga.Clan);
+        var naRanijem = await NovaPrijavaUBaziAsync(await NoviTerminUBaziAsync(trener, pocetak: TestniEntiteti.Sada.AddDays(1)), ja, StatusRezervacije.Potvrdjena);
+        var naKasnijem = await NovaPrijavaUBaziAsync(await NoviTerminUBaziAsync(trener, pocetak: TestniEntiteti.Sada.AddDays(2)), ja, StatusRezervacije.Potvrdjena);
+        await PrijaviSeKaoAsync(ja);
+
+        var stranica = await Klijent.GetFromJsonAsync<StranicaRezervacijaTelo>("/api/rezervacije/moje?sortiranje=-pocetak");
+
+        Assert.That(stranica?.Stavke.Select(r => r.Id), Is.EqualTo(new[] { naKasnijem.Id, naRanijem.Id }));
+    }
+
+    [Test]
     public async Task Moje_Trener_Vraca403()
     {
         await PrijaviSeKaoAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));

@@ -16,16 +16,19 @@ namespace Teretana.KomponentniTestovi.Rezervacije;
 public sealed class RezervacijaServisTestovi
 {
     private const int IdClana = 3;
+    private const int IdTrenera = 2;
     private const int IdRezervacije = 7;
+    private const int IdTermina = 11;
     private static readonly DateTime Sada = new(2026, 9, 14, 10, 0, 0, DateTimeKind.Utc);
 
     private readonly IRezervacijaRepozitorijum _rezervacije = Substitute.For<IRezervacijaRepozitorijum>();
+    private readonly ITerminRepozitorijum _termini = Substitute.For<ITerminRepozitorijum>();
     private readonly RezervacijaServis _servis;
 
     public RezervacijaServisTestovi() =>
         _servis = new RezervacijaServis(
             _rezervacije,
-            Substitute.For<ITerminRepozitorijum>(),
+            _termini,
             new PolitikaOtkazivanja(TimeSpan.FromHours(2)),
             new FakeTimeProvider(new DateTimeOffset(Sada)),
             NullLogger<RezervacijaServis>.Instance);
@@ -52,6 +55,49 @@ public sealed class RezervacijaServisTestovi
         await _rezervacije.Received(1).OtkaziAsync(IdRezervacije, Sada, Arg.Any<CancellationToken>());
     }
 
+    [Test]
+    public void Otkazivanje_RezervacijaOtkazanaPosleProvere_OdbijaSeSaRezervacijaOtkazana()
+    {
+        _rezervacije.VratiAsync(IdRezervacije, Arg.Any<CancellationToken>()).Returns(PotvrdjenaRezervacija(pocetakTermina: Sada.AddDays(1)));
+        _rezervacije.OtkaziAsync(IdRezervacije, Sada, Arg.Any<CancellationToken>()).Returns(new RezultatOtkazivanja(false, null));
+
+        var greska = Assert.ThrowsAsync<DomenskaGreska>(() => _servis.OtkaziAsync(IdClana, IdRezervacije, CancellationToken.None));
+
+        Assert.That(greska?.Kod, Is.EqualTo("rezervacija-otkazana"));
+    }
+
+    [Test]
+    public void Prisustvo_RezervacijaOtkazanaPosleProvere_OdbijaSeSaRezervacijaNijePotvrdjena()
+    {
+        _rezervacije.VratiAsync(IdRezervacije, Arg.Any<CancellationToken>()).Returns(PotvrdjenaRezervacija(pocetakTermina: Sada.AddHours(-1)));
+        _rezervacije.EvidentirajPrisustvoAsync(IdRezervacije, true, Arg.Any<CancellationToken>()).Returns(false);
+
+        var greska = Assert.ThrowsAsync<DomenskaGreska>(() => _servis.EvidentirajPrisustvoAsync(IdTrenera, IdRezervacije, true, CancellationToken.None));
+
+        Assert.That(greska?.Kod, Is.EqualTo("rezervacija-nije-potvrdjena"));
+    }
+
+    [Test]
+    public void Rezervacija_IstiClanUpisanPosleProvere_OdbijaSeSaVecPrijavljen()
+    {
+        _termini.PronadjiAsync(IdTermina, Arg.Any<CancellationToken>()).Returns(new Termin
+        {
+            Id = IdTermina,
+            TrenerId = IdTrenera,
+            Naziv = "Joga",
+            Pocetak = Sada.AddDays(1),
+            Kraj = Sada.AddDays(1).AddHours(1),
+            Kapacitet = 10,
+            Status = StatusTermina.Aktivan,
+        });
+        _rezervacije.ImaAktivnuPrijavuAsync(IdTermina, IdClana, Arg.Any<CancellationToken>()).Returns(false);
+        _rezervacije.RezervisiAsync(IdTermina, IdClana, Sada, Arg.Any<CancellationToken>()).Returns(new RezultatUpisa(IshodUpisa.VecPrijavljen, null));
+
+        var greska = Assert.ThrowsAsync<DomenskaGreska>(() => _servis.RezervisiAsync(IdClana, IdTermina, CancellationToken.None));
+
+        Assert.That(greska?.Kod, Is.EqualTo("vec-prijavljen"));
+    }
+
     private static RezervacijaPodaci PotvrdjenaRezervacija(DateTime pocetakTermina) => new(
         IdRezervacije,
         IdClana,
@@ -60,11 +106,11 @@ public sealed class RezervacijaServisTestovi
         Sada.AddDays(-1),
         null,
         null,
-        11,
+        IdTermina,
         "Joga",
         pocetakTermina,
         pocetakTermina.AddHours(1),
         StatusTermina.Aktivan,
-        2,
+        IdTrenera,
         "Testni Trener");
 }

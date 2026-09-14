@@ -63,6 +63,33 @@ public sealed class IzmenaTerminaTestovi : KomponentniTest
         await OcekujProblemAsync(odgovor, HttpStatusCode.NotFound, "termin-ne-postoji");
     }
 
+    [Test]
+    public async Task Izmena_OtkazanTermin_Vraca409TerminOtkazan()
+    {
+        var trener = await NoviKorisnikUBaziAsync(Uloga.Trener);
+        var termin = await NoviTerminUBaziAsync(trener);
+        await SaBazomAsync(db => db.Termini.Where(t => t.Id == termin.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, StatusTermina.Otkazan)));
+        await PrijaviSeKaoAsync(trener);
+
+        using var odgovor = await Klijent.PutAsJsonAsync($"/api/termini/{termin.Id}", Izmena("Novi naziv"));
+
+        await OcekujProblemAsync(odgovor, HttpStatusCode.Conflict, "termin-otkazan");
+    }
+
+    [Test]
+    public async Task Izmena_NoviPocetakUProslosti_Vraca422PocetakUProslosti()
+    {
+        var trener = await NoviKorisnikUBaziAsync(Uloga.Trener);
+        var termin = await NoviTerminUBaziAsync(trener);
+        await PrijaviSeKaoAsync(trener);
+        var pocetak = TestniEntiteti.Sada.AddMinutes(-5);
+
+        using var odgovor = await Klijent.PutAsJsonAsync($"/api/termini/{termin.Id}", new { naziv = "Pomeren", pocetak, kraj = pocetak.AddHours(1), kapacitet = 10 });
+
+        await OcekujProblemAsync(odgovor, HttpStatusCode.UnprocessableEntity, "pocetak-u-proslosti");
+    }
+
     private static object Izmena(string naziv, int kapacitet = 10)
     {
         var pocetak = TestniEntiteti.Sada.AddDays(3);

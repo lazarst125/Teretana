@@ -94,6 +94,54 @@ public sealed class ListaTerminaTestovi : KomponentniTest
             && a.UkupnoStavki == b.UkupnoStavki && a.UkupnoStranica == b.UkupnoStranica));
     }
 
+    [TestCase("naziv", "A,B,C")]
+    [TestCase("-naziv", "C,B,A")]
+    [TestCase("slobodnaMesta", "C,B,A")]
+    [TestCase("-slobodnaMesta", "A,B,C")]
+    public async Task Lista_Sortiranje_VracaTermineUTrazenomRedosledu(string sortiranje, string ocekivaniRedosled)
+    {
+        var trener = await NoviKorisnikUBaziAsync(Uloga.Trener);
+        var saCetiriSlobodna = await NoviTerminUBaziAsync(trener, kapacitet: 5, pocetak: TestniEntiteti.Sada.AddDays(1), naziv: "B");
+        await NovaPrijavaUBaziAsync(saCetiriSlobodna, await NoviKorisnikUBaziAsync(Uloga.Clan), StatusRezervacije.Potvrdjena);
+        await NoviTerminUBaziAsync(trener, kapacitet: 10, pocetak: TestniEntiteti.Sada.AddDays(2), naziv: "A");
+        await NoviTerminUBaziAsync(trener, kapacitet: 2, pocetak: TestniEntiteti.Sada.AddDays(3), naziv: "C");
+        await PrijaviSeKaoAsync(trener);
+
+        var stranica = await Klijent.GetFromJsonAsync<StranicaTelo>($"/api/termini?sortiranje={Uri.EscapeDataString(sortiranje)}");
+
+        Assert.That(stranica?.Stavke.Select(t => t.Naziv), Is.EqualTo(ocekivaniRedosled.Split(',')));
+    }
+
+    [Test]
+    public async Task Lista_FilterStatusOtkazan_VracaSamoOtkazaneTermine()
+    {
+        var trener = await NoviKorisnikUBaziAsync(Uloga.Trener);
+        await NoviTerminUBaziAsync(trener);
+        var otkazan = await NoviTerminUBaziAsync(trener);
+        await SaBazomAsync(db => db.Termini.Where(t => t.Id == otkazan.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, StatusTermina.Otkazan)));
+        await PrijaviSeKaoAsync(trener);
+
+        var stranica = await Klijent.GetFromJsonAsync<StranicaTelo>("/api/termini?status=Otkazan");
+
+        Assert.That(stranica?.Stavke.Select(t => t.Id), Is.EqualTo(new[] { otkazan.Id }));
+    }
+
+    [Test]
+    public async Task Lista_NepodrzanoSortiranje_Vraca400SaGreskomZaSortiranje()
+    {
+        await PrijaviSeKaoAsync(await NoviKorisnikUBaziAsync(Uloga.Clan));
+
+        using var odgovor = await Klijent.GetAsync("/api/termini?sortiranje=kapacitet");
+
+        var problem = await ProblemIzOdgovoraAsync(odgovor);
+        Assert.Multiple(() =>
+        {
+            Assert.That(odgovor.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That(problem.GetProperty("errors").EnumerateObject().Select(p => p.Name), Is.EquivalentTo(new[] { "sortiranje" }));
+        });
+    }
+
     [Test]
     public async Task Lista_BezTokena_Vraca401()
     {

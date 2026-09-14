@@ -176,6 +176,28 @@ public sealed class RezervisanjeTestovi : KomponentniTest
         await OcekujProblemAsync(odgovor, HttpStatusCode.Forbidden);
     }
 
+    /// <summary>
+    /// Simulira trku: servis nije video prijavu, a isti član je u međuvremenu upisan na listu čekanja. Mesto je slobodno,
+    /// pa uslovno zauzimanje prolazi, a jedinstveni indeks odbija upis i transakcija vraća zauzeto mesto.
+    /// </summary>
+    [Test]
+    public async Task RezervacijaURepozitorijumu_ClanVecImaAktivnuPrijavu_VracaVecPrijavljenIPonistavaZauzetoMesto()
+    {
+        var termin = await NoviTerminUBaziAsync(await NoviKorisnikUBaziAsync(Uloga.Trener), kapacitet: 2);
+        var clan = await NoviKorisnikUBaziAsync(Uloga.Clan);
+        await NovaPrijavaUBaziAsync(termin, clan, StatusRezervacije.NaCekanju);
+        await using var scope = Aplikacija.Services.CreateAsyncScope();
+
+        var rezultat = await Repozitorijum(scope).RezervisiAsync(termin.Id, clan.Id, TestniEntiteti.Sada, CancellationToken.None);
+
+        var brojPotvrdjenih = await BrojPotvrdjenihAsync(termin.Id);
+        Assert.Multiple(() =>
+        {
+            Assert.That(rezultat.Ishod, Is.EqualTo(IshodUpisa.VecPrijavljen));
+            Assert.That(brojPotvrdjenih, Is.Zero);
+        });
+    }
+
     private static Task<bool> ImaSlobodnoMestoAsync(AsyncServiceScope scope, int idTermina) =>
         scope.ServiceProvider.GetRequiredService<TeretanaDbContext>().Termini
             .Where(t => t.Id == idTermina)
