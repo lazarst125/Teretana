@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Teretana.Api.Podaci;
 using Teretana.Testovi.Zajednicko;
 
 namespace Teretana.KomponentniTestovi.Infrastruktura;
 
-public sealed class TeretanaAplikacija(string okruzenje, Action<IServiceCollection> podesiTestneServise) : WebApplicationFactory<Program>
+public sealed class TeretanaAplikacija(
+    string okruzenje,
+    Action<IDictionary<string, string?>> podesiKonfiguraciju,
+    Action<IServiceCollection> podesiTestneServise) : WebApplicationFactory<Program>
 {
     private readonly IzolovanaBaza _baza = new();
 
@@ -22,11 +24,11 @@ public sealed class TeretanaAplikacija(string okruzenje, Action<IServiceCollecti
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var konfiguracija = TestnaKonfiguracija.Osnovna(_baza);
+        podesiKonfiguraciju(konfiguracija);
+
         builder.UseEnvironment(okruzenje);
-        builder.ConfigureAppConfiguration((_, konfiguracija) => konfiguracija.AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            [$"ConnectionStrings:{BazaPodatakaRegistracija.NazivConnectionStringa}"] = _baza.ConnectionString,
-        }));
+        builder.ConfigureAppConfiguration((_, izvori) => izvori.AddInMemoryCollection(konfiguracija));
         builder.ConfigureTestServices(podesiTestneServise);
     }
 }

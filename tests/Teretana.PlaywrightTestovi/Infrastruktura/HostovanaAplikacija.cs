@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Teretana.Api.Podaci;
 using Teretana.Testovi.Zajednicko;
 
 namespace Teretana.PlaywrightTestovi.Infrastruktura;
@@ -40,9 +39,6 @@ public sealed class HostovanaAplikacija : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        builder.ConfigureAppConfiguration((_, konfiguracija) => konfiguracija.AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            [$"ConnectionStrings:{BazaPodatakaRegistracija.NazivConnectionStringa}"] = _baza.ConnectionString,
-        }));
+        builder.ConfigureAppConfiguration((_, konfiguracija) => konfiguracija.AddInMemoryCollection(TestnaKonfiguracija.Osnovna(_baza)));
     }
 }
