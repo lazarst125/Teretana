@@ -7,5 +7,7 @@ public static class ServisiRegistracija
     public static IServiceCollection DodajAplikacioneServise(this IServiceCollection servisi) =>
         servisi
             .AddScoped<IKorisnikRepozitorijum, KorisnikRepozitorijum>()
-            .AddScoped<IAutentikacijaServis, AutentikacijaServis>();
+            .AddScoped<ITerminRepozitorijum, TerminRepozitorijum>()
+            .AddScoped<IAutentikacijaServis, AutentikacijaServis>()
+            .AddScoped<ITerminServis, TerminServis>();
 }
