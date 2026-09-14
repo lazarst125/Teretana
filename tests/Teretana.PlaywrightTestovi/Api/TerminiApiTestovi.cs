@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Teretana.PlaywrightTestovi.Infrastruktura;
+using static Teretana.PlaywrightTestovi.Infrastruktura.TestniPodaci;
 
 namespace Teretana.PlaywrightTestovi.Api;
 
@@ -12,8 +13,8 @@ public sealed class TerminiApiTestovi : ApiTest
     [Test]
     public async Task TrenerKreiraIOtkazujeTermin_ClanGaNalaziFilteromIVidiOtkazivanje_PrekoHttp()
     {
-        var trener = await NoviTrenerAsync();
-        var clan = await NoviClanAsync();
+        var trener = await Podaci.NoviTrenerAsync();
+        var clan = await Podaci.NoviClanAsync();
         // Offset +02:00 u query string-u proverava da se znak '+' enkoduje i da server poredi UTC trenutke.
         var pocetak = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(3).AddHours(10), TimeSpan.Zero).ToOffset(TimeSpan.FromHours(2));
 

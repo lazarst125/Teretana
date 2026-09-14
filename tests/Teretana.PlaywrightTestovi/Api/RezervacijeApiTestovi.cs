@@ -1,4 +1,5 @@
 using Teretana.PlaywrightTestovi.Infrastruktura;
+using static Teretana.PlaywrightTestovi.Infrastruktura.TestniPodaci;
 
 namespace Teretana.PlaywrightTestovi.Api;
 
@@ -11,10 +12,10 @@ public sealed class RezervacijeApiTestovi : ApiTest
     [Test]
     public async Task PoslednjeMestoListaCekanjaIOtkazivanje_ClanSaListeAutomatskiDobijaMesto_PrekoHttp()
     {
-        var trener = await NoviTrenerAsync();
-        var prviClan = await NoviClanAsync();
-        var drugiClan = await NoviClanAsync();
-        var idTermina = await NoviTerminAsync(trener, kapacitet: 1);
+        var trener = await Podaci.NoviTrenerAsync();
+        var prviClan = await Podaci.NoviClanAsync();
+        var drugiClan = await Podaci.NoviClanAsync();
+        var idTermina = await Podaci.NoviTerminAsync(trener, kapacitet: 1);
 
         var rezervacija = await Api.PostAsync($"/api/termini/{idTermina}/rezervacije", SaTokenom(prviClan));
         var prijavaNaCekanju = await Api.PostAsync($"/api/termini/{idTermina}/lista-cekanja", SaTokenom(drugiClan));
@@ -39,10 +40,10 @@ public sealed class RezervacijeApiTestovi : ApiTest
     [Test]
     public async Task DvaIstovremenaZahtevaZaPoslednjeMesto_PrekoKestrela_TacnoJedanDobijaMesto()
     {
-        var trener = await NoviTrenerAsync();
-        var prviClan = await NoviClanAsync();
-        var drugiClan = await NoviClanAsync();
-        var idTermina = await NoviTerminAsync(trener, kapacitet: 1);
+        var trener = await Podaci.NoviTrenerAsync();
+        var prviClan = await Podaci.NoviClanAsync();
+        var drugiClan = await Podaci.NoviClanAsync();
+        var idTermina = await Podaci.NoviTerminAsync(trener, kapacitet: 1);
 
         var odgovori = await Task.WhenAll(
             Api.PostAsync($"/api/termini/{idTermina}/rezervacije", SaTokenom(prviClan)),
