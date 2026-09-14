@@ -3,9 +3,9 @@
 Web aplikacija za rezervaciju termina u teretani: termini sa ograničenim kapacitetom, otkazivanje sa rokom,
 lista čekanja koja se automatski pomera i role **član** i **trener**.
 
-> **Status izrade:** baza, migracije, demonstracioni podaci, provera statusa sistema i autentikacija
-> (registracija, prijava, pregled profila) su gotovi. API operacije i ekrani za termine i rezervacije
-> dodaju se u narednim koracima.
+> **Status izrade:** baza, migracije, demonstracioni podaci, provera statusa sistema, autentikacija
+> (registracija, prijava, pregled profila) i API za termine (lista, detalj, kreiranje, izmena, brisanje,
+> otkazivanje, polaznici) su gotovi. API za rezervacije i ekrani dodaju se u narednim koracima.
 
 ## Preduslovi
 
