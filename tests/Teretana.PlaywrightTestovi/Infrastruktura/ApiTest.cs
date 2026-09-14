@@ -69,6 +69,14 @@ public abstract class ApiTest : PlaywrightTest
         return await PrijaviAsync(email);
     }
 
+    protected async Task<int> NoviTerminAsync(PrijavljenKorisnik trener, int kapacitet)
+    {
+        var pocetak = DateTimeOffset.UtcNow.AddDays(3);
+        var odgovor = await Api.PostAsync("/api/termini", SaTokenom(trener, new { naziv = "Api termin", pocetak, kraj = pocetak.AddHours(1), kapacitet }));
+        Assert.That(odgovor.Status, Is.EqualTo(201), "Kreiranje termina u pripremi testa nije uspelo.");
+        return (await odgovor.JsonAsync())!.Value.GetProperty("id").GetInt32();
+    }
+
     private async Task<PrijavljenKorisnik> PrijaviAsync(string email)
     {
         var prijava = await Api.PostAsync("/api/auth/prijava", new() { DataObject = new { email, lozinka = Lozinka } });

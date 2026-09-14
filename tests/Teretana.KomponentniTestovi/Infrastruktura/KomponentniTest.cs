@@ -170,11 +170,22 @@ public abstract class KomponentniTest
         return prijava;
     }
 
-    protected async Task PrijaviSeKaoAsync(Korisnik korisnik)
+    protected async Task PrijaviSeKaoAsync(Korisnik korisnik) =>
+        Klijent.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await TokenZaAsync(korisnik));
+
+    /// <summary>Poseban klijent sa tokenom korisnika, za testove u kojima više korisnika šalje zahteve istovremeno.</summary>
+    protected async Task<HttpClient> NoviKlijentZaAsync(Korisnik korisnik)
+    {
+        var klijent = Aplikacija.CreateClient();
+        klijent.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await TokenZaAsync(korisnik));
+        return klijent;
+    }
+
+    private async Task<string> TokenZaAsync(Korisnik korisnik)
     {
         using var odgovor = await Klijent.PostAsJsonAsync("/api/auth/prijava", new { email = korisnik.Email, lozinka = TestnaLozinka });
         odgovor.EnsureSuccessStatusCode();
         var telo = await odgovor.Content.ReadFromJsonAsync<JsonElement>();
-        Klijent.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", telo.GetProperty("token").GetString());
+        return telo.GetProperty("token").GetString()!;
     }
 }
