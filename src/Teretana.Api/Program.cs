@@ -1,7 +1,11 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using Teretana.Api.Infrastruktura.Autentikacija;
 using Teretana.Api.Infrastruktura.ObradaGresaka;
 using Teretana.Api.Infrastruktura.StatusSistema;
 using Teretana.Api.Podaci;
+using Teretana.Api.Servisi;
 
 const string ArgumentZaResetBaze = "--reset-db";
 
@@ -16,9 +20,15 @@ builder.Logging.AddJsonConsole(opcije =>
 });
 
 builder.Services.AddSingleton(TimeProvider.System);
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetails(opcije => opcije.CustomizeProblemDetails = ProblemDetailsPodesavanja.DodajKodZaValidaciju);
+builder.Services.AddExceptionHandler<DomenskaGreskaHandler>();
 builder.Services.AddExceptionHandler<NeobradjenIzuzetakHandler>();
+builder.Services
+    .AddControllers(opcije => opcije.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider()))
+    .AddJsonOptions(opcije => opcije.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.DodajBazuPodataka();
+builder.Services.DodajAutentikaciju();
+builder.Services.DodajAplikacioneServise();
 builder.Services.AddHealthChecks().AddDbContextCheck<TeretanaDbContext>("baza");
 
 var app = builder.Build();
@@ -29,16 +39,20 @@ if (args.Contains(ArgumentZaResetBaze))
     return;
 }
 
+AutentikacijaRegistracija.UpozoriAkoJeJwtKljucPrivremen(app);
 await PripremaBaze.PripremiAsync(app.Services);
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseDefaultFiles();
 app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = StatusSistemaOdgovor.UpisiAsync,
 });
+app.MapControllers();
 
 app.Run();
