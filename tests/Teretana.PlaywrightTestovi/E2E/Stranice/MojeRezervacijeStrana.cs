@@ -2,6 +2,8 @@ namespace Teretana.PlaywrightTestovi.E2E.Stranice;
 
 public sealed class MojeRezervacijeStrana(IPage stranica)
 {
+    public ILocator PraznoStanje => stranica.GetByTestId("rezervacije-prazno");
+
     public ILocator Kartica(int idRezervacije) =>
         stranica.Locator($"[data-testid='rezervacija-kartica'][data-rezervacija-id='{idRezervacije}']");
 

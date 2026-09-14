@@ -18,6 +18,10 @@ public sealed class TerminDetaljStrana(IPage stranica)
 
     public ILocator GreskaAkcije => stranica.GetByTestId("termin-akcija-greska");
 
+    public ILocator StanjeGreske => stranica.GetByTestId("termin-greska");
+
+    public ILocator DugmePokusajPonovo => stranica.GetByTestId("termin-ponovo");
+
     public ILocator DugmeRezervisi => stranica.GetByTestId("termin-rezervisi");
 
     public ILocator DugmeListaCekanja => stranica.GetByTestId("termin-lista-cekanja");

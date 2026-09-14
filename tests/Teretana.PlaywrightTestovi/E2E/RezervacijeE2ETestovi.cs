@@ -86,4 +86,27 @@ public sealed class RezervacijeE2ETestovi : E2ETest
         await Expect(detalj.DugmeRezervisi).ToHaveCountAsync(0);
         await Expect(detalj.DugmeListaCekanja).ToHaveCountAsync(0);
     }
+
+    [Test]
+    public async Task NoviClanBezRezervacija_MojeRezervacije_PrikazujuPraznoStanje()
+    {
+        await PrijaviSeAsync(await Podaci.NoviClanAsync());
+        var mojeRezervacije = new MojeRezervacijeStrana(Page);
+
+        await mojeRezervacije.OtvoriAsync();
+
+        await Expect(mojeRezervacije.PraznoStanje).ToHaveTextAsync("Nemate rezervacija koje odgovaraju filterima.");
+    }
+
+    [Test]
+    public async Task NepostojeciTermin_PrikazujeStanjeGreskeSaPonovnimPokusajem()
+    {
+        await PrijaviSeAsync(await Podaci.NoviClanAsync());
+        var detalj = new TerminDetaljStrana(Page);
+
+        await detalj.OtvoriAsync(999_999);
+
+        await Expect(detalj.StanjeGreske).ToContainTextAsync("Termin ne postoji.");
+        await Expect(detalj.DugmePokusajPonovo).ToBeVisibleAsync();
+    }
 }
