@@ -89,7 +89,7 @@ internal sealed class TerminRepozitorijum(TeretanaDbContext db) : ITerminRepozit
         var ukupno = await termini.CountAsync(cancellationToken);
         var stavke = await Sortiraj(termini, upit.Sortiranje)
             .ThenBy(t => t.Id)
-            .Skip((upit.Stranica - 1) * upit.VelicinaStranice)
+            .Skip(upit.Preskoci())
             .Take(upit.VelicinaStranice)
             .Select(UStavku)
             .ToListAsync(cancellationToken);
@@ -116,7 +116,7 @@ internal sealed class TerminRepozitorijum(TeretanaDbContext db) : ITerminRepozit
     {
         var prijave = await db.Rezervacije.AsNoTracking()
             .Where(r => r.TerminId == idTermina && r.Status != StatusRezervacije.Otkazana)
-            .OrderBy(r => r.KreiranaAt).ThenBy(r => r.Id)
+            .PoReduCekanja()
             .Select(r => new { r.Id, r.ClanId, r.Clan.ImePrezime, r.Clan.Email, r.Status, r.KreiranaAt, r.PotvrdjenaAt, r.Prisustvovao })
             .ToListAsync(cancellationToken);
 
@@ -218,7 +218,7 @@ internal sealed class TerminRepozitorijum(TeretanaDbContext db) : ITerminRepozit
     {
         var prijava = await db.Rezervacije.AsNoTracking()
             .Where(r => r.TerminId == idTermina && r.ClanId == idClana && r.Status != StatusRezervacije.Otkazana)
-            .Select(r => new { r.Id, r.Status, r.KreiranaAt })
+            .Select(r => new { r.Id, r.Status })
             .SingleOrDefaultAsync(cancellationToken);
         if (prijava is null)
         {
@@ -230,11 +230,7 @@ internal sealed class TerminRepozitorijum(TeretanaDbContext db) : ITerminRepozit
             return new MojaPrijavaOdgovor(prijava.Id, prijava.Status, null);
         }
 
-        var ispred = await db.Rezervacije.CountAsync(
-            r => r.TerminId == idTermina
-                && r.Status == StatusRezervacije.NaCekanju
-                && (r.KreiranaAt < prijava.KreiranaAt || (r.KreiranaAt == prijava.KreiranaAt && r.Id < prijava.Id)),
-            cancellationToken);
-        return new MojaPrijavaOdgovor(prijava.Id, prijava.Status, ispred + 1);
+        var pozicije = await db.Rezervacije.AsNoTracking().PozicijeNaCekanjuAsync([idTermina], cancellationToken);
+        return new MojaPrijavaOdgovor(prijava.Id, prijava.Status, pozicije[prijava.Id]);
     }
 }

@@ -2,25 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Teretana.Api.Domen;
 using Teretana.Api.Ugovori.Validacija;
+using Teretana.Api.Ugovori.Zajednicko;
 
 namespace Teretana.Api.Ugovori.Termini;
 
-/// <summary>
-/// Parametri liste termina iz query string-a. Imena su eksplicitna jer MVC ključ validacione greške za
-/// query parametre gradi iz imena za binding, a klijent treba da dobije isto ime koje je poslao.
-/// </summary>
-public sealed record TerminiUpit
+public sealed record TerminiUpit : StranicenjeUpit
 {
-    public const int NajvecaVelicinaStranice = 100;
-
-    [FromQuery(Name = "stranica")]
-    [Range(1, 100_000, ErrorMessage = "Stranica mora biti između 1 i 100000.")]
-    public int Stranica { get; init; } = 1;
-
-    [FromQuery(Name = "velicinaStranice")]
-    [Range(1, NajvecaVelicinaStranice, ErrorMessage = "Veličina stranice mora biti između 1 i 100.")]
-    public int VelicinaStranice { get; init; } = 20;
-
     /// <summary>Termini koji počinju u ovom trenutku ili kasnije.</summary>
     [FromQuery(Name = "od")]
     public DateTimeOffset? Od { get; init; }
