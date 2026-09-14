@@ -3,8 +3,18 @@
 Web aplikacija za rezervaciju termina u teretani: termini sa ograničenim kapacitetom, otkazivanje sa rokom,
 lista čekanja koja se automatski pomera i role **član** i **trener**.
 
-> **Status izrade:** aplikacija je kompletna (API i ekrani za obe role, kroz koje je dostupna svaka API
-> operacija), sa komponentnim, API i E2E testovima. Završna dokumentacija se dodaje u narednim koracima.
+Član pregleda raspored, rezerviše mesto ili se prijavljuje na listu čekanja i otkazuje rezervaciju do 2 sata
+pre početka. Trener pravi, menja, otkazuje i briše svoje termine, vidi polaznike i evidentira prisustvo.
+Svaka API operacija dostupna je i kroz korisnički interfejs.
+
+## Dokumentacija
+
+| Dokument | Sadržaj |
+|---|---|
+| `README.md` | pokretanje aplikacije i testova, test nalozi, demonstracioni podaci |
+| [`ARHITEKTURA.md`](ARHITEKTURA.md) | struktura, tok zahteva, model podataka, rešenje konkurentnosti, obrazložene odluke |
+| [`TEST-PLAN.md`](TEST-PLAN.md) | nivoi testiranja, pokrivenost poslovnih pravila i API operacija, izveštaji |
+| [`ANALIZA.md`](ANALIZA.md) | analiza referentnih projekata i gde je svaki nedostatak rešen u ovom projektu |
 
 ## Preduslovi
 
