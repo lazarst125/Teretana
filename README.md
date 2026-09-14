@@ -3,8 +3,9 @@
 Web aplikacija za rezervaciju termina u teretani: termini sa ograničenim kapacitetom, otkazivanje sa rokom,
 lista čekanja koja se automatski pomera i role **član** i **trener**.
 
-> **Status izrade:** baza, migracije, demonstracioni podaci i provera statusa sistema su gotovi.
-> API operacije i ekrani za termine i rezervacije dodaju se u narednim koracima.
+> **Status izrade:** baza, migracije, demonstracioni podaci, provera statusa sistema i autentikacija
+> (registracija, prijava, pregled profila) su gotovi. API operacije i ekrani za termine i rezervacije
+> dodaju se u narednim koracima.
 
 ## Preduslovi
 
@@ -57,6 +58,16 @@ Dozvoljena je samo u Development okruženju.
 | `clan6@teretana.local` | `Clan123!` | član | Vuk Nikolić |
 
 Nalozi i lozinke postoje samo u demonstracionim podacima za Development okruženje.
+
+### JWT ključ
+
+U Development okruženju aplikacija sama generiše privremeni ključ za potpisivanje tokena, pa radi bez
+ikakvog podešavanja; posledica je da tokeni ne važe posle restarta. Van Development okruženja aplikacija
+se ne pokreće bez ključa od najmanje 32 bajta, koji se zadaje kroz promenljivu okruženja:
+
+```bash
+Jwt__Kljuc="<nasumičan niz od najmanje 32 znaka>" dotnet run --project src/Teretana.Api --no-launch-profile
+```
 
 ## Demonstracioni podaci
 
