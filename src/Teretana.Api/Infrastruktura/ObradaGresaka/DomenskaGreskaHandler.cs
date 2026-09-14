@@ -19,7 +19,10 @@ internal sealed partial class DomenskaGreskaHandler(
         var status = greska.Vrsta switch
         {
             VrstaGreske.NijeAutorizovan => StatusCodes.Status401Unauthorized,
+            VrstaGreske.Zabranjeno => StatusCodes.Status403Forbidden,
+            VrstaGreske.NijePronadjeno => StatusCodes.Status404NotFound,
             VrstaGreske.Konflikt => StatusCodes.Status409Conflict,
+            VrstaGreske.PoslovnoPravilo => StatusCodes.Status422UnprocessableEntity,
             _ => throw new ArgumentOutOfRangeException(nameof(exception), greska.Vrsta, "Nepoznata vrsta domenske greške."),
         };
 

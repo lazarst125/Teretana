@@ -3,7 +3,10 @@ namespace Teretana.Api.Domen;
 public enum VrstaGreske
 {
     NijeAutorizovan,
+    Zabranjeno,
+    NijePronadjeno,
     Konflikt,
+    PoslovnoPravilo,
 }
 
 /// <summary>
