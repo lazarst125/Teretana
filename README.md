@@ -23,6 +23,10 @@ Svaka API operacija dostupna je i kroz korisnički interfejs.
 
 Baza se ne instalira posebno: koristi se SQLite, a fajl baze pravi aplikacija pri prvom pokretanju.
 
+Na Windows-u klonirajte projekat u kratku putanju (npr. `C:\Projekti\Teretana`). Paket Playwright sadrži
+duboko ugnježdene fajlove, pa build Playwright testova pada sa greškom `MSB3021` ako putanja pređe 260 znakova,
+osim ako su u sistemu uključene dugačke putanje (`LongPathsEnabled`).
+
 ## Struktura projekta
 
 Projekat se sastoji iz tri celine koje se pokreću nezavisno:
