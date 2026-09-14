@@ -20,7 +20,9 @@ jobs:
           global-json-file: global.json
 
       - name: Restore
-        run: dotnet restore Teretana.slnx
+        run: |
+          dotnet restore Teretana.slnx
+          dotnet tool restore
 
       - name: Provera formata koda
         run: dotnet format Teretana.slnx --verify-no-changes --no-restore
@@ -34,6 +36,7 @@ jobs:
           --configuration Release --no-build
           --logger "trx;LogFileName=komponentni.trx"
           --results-directory TestResults
+          --collect "XPlat Code Coverage" --settings pokrivenost.runsettings
 
       # Fixture instalira sam browser, ali sistemske biblioteke za Linux traže --with-deps.
       - name: Instalacija Chromium-a sa sistemskim zavisnostima
@@ -45,6 +48,16 @@ jobs:
           --configuration Release --no-build
           --logger "trx;LogFileName=playwright.trx"
           --results-directory TestResults
+          --collect "XPlat Code Coverage" --settings pokrivenost.runsettings
+
+      - name: Izveštaj o pokrivenosti koda
+        if: ${{ !cancelled() && hashFiles('TestResults/**/coverage.cobertura.xml') != '' }}
+        run: |
+          dotnet reportgenerator \
+            -reports:"TestResults/**/coverage.cobertura.xml" \
+            -targetdir:TestResults/pokrivenost \
+            -reporttypes:"HtmlInline;MarkdownSummaryGithub;TextSummary"
+          cat TestResults/pokrivenost/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload rezultata testova
         if: always()
@@ -52,6 +65,14 @@ jobs:
         with:
           name: rezultati-testova
           path: |
-            TestResults/
+            TestResults/*.trx
             tests/Teretana.PlaywrightTestovi/bin/Release/net10.0/playwright-artefakti/
+          if-no-files-found: ignore
+
+      - name: Upload izveštaja o pokrivenosti
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: izvestaj-pokrivenosti
+          path: TestResults/pokrivenost/
           if-no-files-found: ignore

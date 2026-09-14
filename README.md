@@ -118,3 +118,18 @@ pwsh tests/Teretana.PlaywrightTestovi/bin/Debug/net10.0/playwright.ps1 install -
 Kad E2E test padne, trace, screenshot i video se čuvaju u
 `tests/Teretana.PlaywrightTestovi/bin/<konfiguracija>/net10.0/playwright-artefakti/`.
 Trace se otvara komandom `pwsh tests/Teretana.PlaywrightTestovi/bin/Debug/net10.0/playwright.ps1 show-trace <putanja>/trace.zip`.
+
+## Izveštaj o pokrivenosti koda
+
+Pokrivenost se meri za aplikaciju (`Teretana.Api`) iz obe test celine zajedno; migracije i generisani kod
+se ne računaju (`pokrivenost.runsettings`).
+
+```bash
+dotnet tool restore
+dotnet test tests/Teretana.KomponentniTestovi --collect "XPlat Code Coverage" --settings pokrivenost.runsettings --results-directory TestResults
+dotnet test tests/Teretana.PlaywrightTestovi --collect "XPlat Code Coverage" --settings pokrivenost.runsettings --results-directory TestResults
+dotnet reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:TestResults/pokrivenost -reporttypes:"HtmlInline;TextSummary"
+```
+
+HTML izveštaj je u `TestResults/pokrivenost/index.html`, a kratak pregled u `TestResults/pokrivenost/Summary.txt`.
+U CI-u je isti izveštaj dostupan kao artifact `izvestaj-pokrivenosti`, a sažetak se prikazuje na stranici pokretanja.
