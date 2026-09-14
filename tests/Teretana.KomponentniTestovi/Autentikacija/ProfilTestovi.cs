@@ -5,8 +5,6 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Time.Testing;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Teretana.Api.Domen;
@@ -16,8 +14,6 @@ namespace Teretana.KomponentniTestovi.Autentikacija;
 
 public sealed class ProfilTestovi : KomponentniTest
 {
-    private readonly FakeTimeProvider _vreme = new(new DateTimeOffset(2026, 9, 14, 10, 0, 0, TimeSpan.Zero));
-
     [Test]
     public async Task Ja_SaVazecimTokenom_VracaPodatkeKorisnikaBezLozinke()
     {
@@ -41,13 +37,8 @@ public sealed class ProfilTestovi : KomponentniTest
     {
         using var odgovor = await Klijent.GetAsync("/api/auth/ja");
 
-        var problem = await ProblemIzOdgovoraAsync(odgovor);
-        Assert.Multiple(() =>
-        {
-            Assert.That(odgovor.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-            Assert.That(problem.GetProperty("status").GetInt32(), Is.EqualTo(401));
-            Assert.That(odgovor.Headers.WwwAuthenticate.Select(z => z.Scheme), Does.Contain("Bearer"));
-        });
+        await OcekujProblemAsync(odgovor, HttpStatusCode.Unauthorized);
+        Assert.That(odgovor.Headers.WwwAuthenticate.Select(z => z.Scheme), Does.Contain("Bearer"));
     }
 
     [Test]
@@ -66,7 +57,7 @@ public sealed class ProfilTestovi : KomponentniTest
     {
         var clan = await NoviKorisnikUBaziAsync(Uloga.Clan);
         await PrijaviSeKaoAsync(clan);
-        _vreme.Advance(TimeSpan.FromHours(8));
+        Vreme.Advance(TimeSpan.FromHours(8));
 
         using var odgovor = await Klijent.GetAsync("/api/auth/ja");
 
@@ -82,20 +73,12 @@ public sealed class ProfilTestovi : KomponentniTest
 
         using var odgovor = await Klijent.GetAsync("/api/auth/ja");
 
-        var problem = await ProblemIzOdgovoraAsync(odgovor);
-        Assert.Multiple(() =>
-        {
-            Assert.That(odgovor.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-            Assert.That(problem.GetProperty("code").GetString(), Is.EqualTo("korisnik-ne-postoji"));
-        });
+        await OcekujProblemAsync(odgovor, HttpStatusCode.Unauthorized, "korisnik-ne-postoji");
     }
-
-    protected override void PodesiTestneServise(IServiceCollection servisi) =>
-        servisi.AddSingleton<TimeProvider>(_vreme);
 
     private string TokenPotpisanDrugimKljucem(Korisnik korisnik)
     {
-        var sada = _vreme.GetUtcNow().UtcDateTime;
+        var sada = Vreme.GetUtcNow().UtcDateTime;
         return new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
         {
             Issuer = "Teretana",

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -5,14 +6,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using Teretana.Api.Domen;
 using Teretana.Api.Podaci;
 
 namespace Teretana.KomponentniTestovi.Infrastruktura;
 
 /// <summary>
-/// Svaki test dobija sopstvenu instancu aplikacije i sopstvenu SQLite bazu, pa testovi mogu da se
-/// izvršavaju paralelno i bilo kojim redosledom.
+/// Svaki test dobija sopstvenu instancu aplikacije, sopstvenu SQLite bazu i sopstveni sat postavljen na
+/// <see cref="TestniEntiteti.Sada"/>, pa testovi mogu da se izvršavaju paralelno, bilo kojim redosledom
+/// i ne zavise od stvarnog datuma.
 /// </summary>
 [Parallelizable(ParallelScope.All)]
 [Category("Komponentni")]
@@ -24,12 +27,18 @@ public abstract class KomponentniTest
 
     protected HttpClient Klijent { get; private set; } = null!;
 
+    protected FakeTimeProvider Vreme { get; } = new(new DateTimeOffset(TestniEntiteti.Sada));
+
     protected virtual string Okruzenje => "Testing";
 
     [SetUp]
     public void PokreniAplikaciju()
     {
-        Aplikacija = new TeretanaAplikacija(Okruzenje, PodesiKonfiguraciju, PodesiTestneServise);
+        Aplikacija = new TeretanaAplikacija(Okruzenje, PodesiKonfiguraciju, servisi =>
+        {
+            servisi.AddSingleton<TimeProvider>(Vreme);
+            PodesiTestneServise(servisi);
+        });
         Klijent = Aplikacija.CreateClient();
     }
 
@@ -46,6 +55,21 @@ public abstract class KomponentniTest
     {
         Assert.That(odgovor.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/problem+json"));
         return await odgovor.Content.ReadFromJsonAsync<JsonElement>();
+    }
+
+    /// <summary>Odgovor je ProblemDetails sa očekivanim statusom i, ako je zadat, kodom greške.</summary>
+    protected static async Task OcekujProblemAsync(HttpResponseMessage odgovor, HttpStatusCode status, string? kod = null)
+    {
+        var problem = await ProblemIzOdgovoraAsync(odgovor);
+        Assert.Multiple(() =>
+        {
+            Assert.That(odgovor.StatusCode, Is.EqualTo(status));
+            Assert.That(problem.GetProperty("status").GetInt32(), Is.EqualTo((int)status));
+            if (kod is not null)
+            {
+                Assert.That(problem.GetProperty("code").GetString(), Is.EqualTo(kod));
+            }
+        });
     }
 
     protected virtual void PodesiKonfiguraciju(IDictionary<string, string?> konfiguracija)
@@ -71,11 +95,11 @@ public abstract class KomponentniTest
     /// <summary>
     /// Izvršava izmenu direktno nad bazom, mimo servisa, i vraća grešku kojom je baza odbila upis.
     /// </summary>
-    protected async Task<SqliteException> UpisKojiBazaOdbijaAsync(Action<TeretanaDbContext> izmena)
+    protected async Task<SqliteException> UpisKojiBazaOdbijaAsync(Func<TeretanaDbContext, Task> izmena)
     {
         await using var scope = Aplikacija.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<TeretanaDbContext>();
-        izmena(db);
+        await izmena(db);
 
         var izuzetak = Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
         return izuzetak?.InnerException as SqliteException
@@ -96,6 +120,54 @@ public abstract class KomponentniTest
             return db.SaveChangesAsync();
         });
         return korisnik;
+    }
+
+    protected async Task<Termin> NoviTerminUBaziAsync(Korisnik trener, int kapacitet = 10, DateTime? pocetak = null, string naziv = "Testni termin")
+    {
+        var pocetakTermina = pocetak ?? TestniEntiteti.Sada.AddDays(1);
+        var termin = new Termin
+        {
+            TrenerId = trener.Id,
+            Naziv = naziv,
+            Pocetak = pocetakTermina,
+            Kraj = pocetakTermina.AddHours(1),
+            Kapacitet = kapacitet,
+            Status = StatusTermina.Aktivan,
+            KreiranAt = TestniEntiteti.Sada.AddDays(-1),
+        };
+        await SaBazomAsync(db =>
+        {
+            db.Termini.Add(termin);
+            return db.SaveChangesAsync();
+        });
+        return termin;
+    }
+
+    /// <summary>
+    /// Upisuje prijavu direktno u bazu; za potvrđenu prijavu uvećava i brojač termina, kao što to radi servis.
+    /// </summary>
+    protected async Task<Rezervacija> NovaPrijavaUBaziAsync(Termin termin, Korisnik clan, StatusRezervacije status, DateTime? kreiranaAt = null)
+    {
+        var kreirana = kreiranaAt ?? TestniEntiteti.Sada.AddHours(-1);
+        var prijava = new Rezervacija
+        {
+            TerminId = termin.Id,
+            ClanId = clan.Id,
+            Status = status,
+            KreiranaAt = kreirana,
+            PotvrdjenaAt = status == StatusRezervacije.Potvrdjena ? kreirana : null,
+        };
+        await SaBazomAsync(async db =>
+        {
+            db.Rezervacije.Add(prijava);
+            await db.SaveChangesAsync();
+            if (status == StatusRezervacije.Potvrdjena)
+            {
+                await db.Termini.Where(t => t.Id == termin.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(t => t.BrojPotvrdjenih, t => t.BrojPotvrdjenih + 1));
+            }
+        });
+        return prijava;
     }
 
     protected async Task PrijaviSeKaoAsync(Korisnik korisnik)

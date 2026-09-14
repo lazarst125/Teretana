@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Time.Testing;
 using Teretana.Api.Domen;
 using Teretana.Api.Podaci;
 using Teretana.KomponentniTestovi.Infrastruktura;
@@ -8,9 +7,7 @@ namespace Teretana.KomponentniTestovi.BazaPodataka;
 
 public sealed class PocetniPodaciTestovi : KomponentniTest
 {
-    private static readonly DateTime Sada = new(2026, 9, 14, 10, 0, 0, DateTimeKind.Utc);
-
-    private readonly FakeTimeProvider _vreme = new(new DateTimeOffset(Sada));
+    private static readonly DateTime Sada = TestniEntiteti.Sada;
 
     [Test]
     public async Task Seed_PunTermin_ImaPotvrdjenihRezervacijaKolikoJeKapacitet()
@@ -119,9 +116,9 @@ public sealed class PocetniPodaciTestovi : KomponentniTest
     [Test]
     public async Task UpisAkoJeBazaPrazna_PonovljenPoziv_NeDupliraPodatke()
     {
-        await SaBazomAsync(db => PocetniPodaci.UpisiAkoJeBazaPraznaAsync(db, _vreme));
+        await SaBazomAsync(db => PocetniPodaci.UpisiAkoJeBazaPraznaAsync(db, Vreme));
 
-        await SaBazomAsync(db => PocetniPodaci.UpisiAkoJeBazaPraznaAsync(db, _vreme));
+        await SaBazomAsync(db => PocetniPodaci.UpisiAkoJeBazaPraznaAsync(db, Vreme));
 
         var brojTermina = await SaBazomAsync(db => db.Termini.CountAsync());
         Assert.That(brojTermina, Is.EqualTo(7));
@@ -130,13 +127,8 @@ public sealed class PocetniPodaciTestovi : KomponentniTest
     [Test]
     public async Task ResetBaze_PosleIzmenaPodataka_VracaSamoPocetnePodatke()
     {
-        await SaBazomAsync(db => PocetniPodaci.UpisiAsync(db, _vreme));
-        var dodatiClan = TestniEntiteti.NoviClan();
-        await SaBazomAsync(db =>
-        {
-            db.Korisnici.Add(dodatiClan);
-            return db.SaveChangesAsync();
-        });
+        await SaBazomAsync(db => PocetniPodaci.UpisiAsync(db, Vreme));
+        var dodatiClan = await NoviKorisnikUBaziAsync(Uloga.Clan);
 
         await PripremaBaze.ResetujAsync(Aplikacija.Services);
 
@@ -158,7 +150,7 @@ public sealed class PocetniPodaciTestovi : KomponentniTest
 
     private Task<List<Termin>> UpisiIProcitajTermineAsync() => SaBazomAsync(async db =>
     {
-        await PocetniPodaci.UpisiAsync(db, _vreme);
+        await PocetniPodaci.UpisiAsync(db, Vreme);
         db.ChangeTracker.Clear();
         return await db.Termini
             .Include(t => t.Trener)

@@ -14,16 +14,15 @@ public sealed class OgranicenjaBazeTestovi : KomponentniTest
     [Test]
     public async Task Korisnik_EmailKojiSeRazlikujeSamoUVeliciniSlova_BazaOdbija()
     {
-        var postojeci = TestniEntiteti.NoviClan();
-        await SaBazomAsync(db =>
-        {
-            db.Korisnici.Add(postojeci);
-            return db.SaveChangesAsync();
-        });
+        var postojeci = await NoviKorisnikUBaziAsync(Uloga.Clan);
         var duplikat = TestniEntiteti.NoviClan();
         duplikat.Email = postojeci.Email.ToUpperInvariant();
 
-        var greska = await UpisKojiBazaOdbijaAsync(db => db.Korisnici.Add(duplikat));
+        var greska = await UpisKojiBazaOdbijaAsync(db =>
+        {
+            db.Korisnici.Add(duplikat);
+            return Task.CompletedTask;
+        });
 
         Assert.That(greska.SqliteExtendedErrorCode, Is.EqualTo(SqliteConstraintUnique));
     }
@@ -33,7 +32,11 @@ public sealed class OgranicenjaBazeTestovi : KomponentniTest
     {
         var termin = TestniEntiteti.NoviTermin(TestniEntiteti.NoviTrener(), kapacitet: 0);
 
-        var greska = await UpisKojiBazaOdbijaAsync(db => db.Termini.Add(termin));
+        var greska = await UpisKojiBazaOdbijaAsync(db =>
+        {
+            db.Termini.Add(termin);
+            return Task.CompletedTask;
+        });
 
         Assert.Multiple(() =>
         {
@@ -48,7 +51,11 @@ public sealed class OgranicenjaBazeTestovi : KomponentniTest
         var termin = TestniEntiteti.NoviTermin(TestniEntiteti.NoviTrener(), kapacitet: 2);
         termin.BrojPotvrdjenih = 3;
 
-        var greska = await UpisKojiBazaOdbijaAsync(db => db.Termini.Add(termin));
+        var greska = await UpisKojiBazaOdbijaAsync(db =>
+        {
+            db.Termini.Add(termin);
+            return Task.CompletedTask;
+        });
 
         Assert.Multiple(() =>
         {
@@ -63,7 +70,11 @@ public sealed class OgranicenjaBazeTestovi : KomponentniTest
         var termin = TestniEntiteti.NoviTermin(TestniEntiteti.NoviTrener());
         termin.Kraj = termin.Pocetak.AddMinutes(-1);
 
-        var greska = await UpisKojiBazaOdbijaAsync(db => db.Termini.Add(termin));
+        var greska = await UpisKojiBazaOdbijaAsync(db =>
+        {
+            db.Termini.Add(termin);
+            return Task.CompletedTask;
+        });
 
         Assert.Multiple(() =>
         {
@@ -75,21 +86,15 @@ public sealed class OgranicenjaBazeTestovi : KomponentniTest
     [Test]
     public async Task Rezervacija_ClanPotvrdjenIIstovremenoNaCekanjuZaIstiTermin_BazaOdbija()
     {
-        var termin = TestniEntiteti.NoviTermin(TestniEntiteti.NoviTrener());
-        var clan = TestniEntiteti.NoviClan();
-        await SaBazomAsync(db =>
-        {
-            db.Rezervacije.Add(TestniEntiteti.NovaRezervacija(termin, clan, StatusRezervacije.Potvrdjena));
-            return db.SaveChangesAsync();
-        });
+        var termin = await NoviTerminUBaziAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));
+        var clan = await NoviKorisnikUBaziAsync(Uloga.Clan);
+        await NovaPrijavaUBaziAsync(termin, clan, StatusRezervacije.Potvrdjena);
 
-        var greska = await UpisKojiBazaOdbijaAsync(db => db.Rezervacije.Add(new Rezervacija
+        var greska = await UpisKojiBazaOdbijaAsync(db =>
         {
-            TerminId = termin.Id,
-            ClanId = clan.Id,
-            Status = StatusRezervacije.NaCekanju,
-            KreiranaAt = TestniEntiteti.Sada,
-        }));
+            db.Rezervacije.Add(new Rezervacija { TerminId = termin.Id, ClanId = clan.Id, Status = StatusRezervacije.NaCekanju, KreiranaAt = TestniEntiteti.Sada });
+            return Task.CompletedTask;
+        });
 
         Assert.That(greska.SqliteExtendedErrorCode, Is.EqualTo(SqliteConstraintUnique));
     }
@@ -97,25 +102,11 @@ public sealed class OgranicenjaBazeTestovi : KomponentniTest
     [Test]
     public async Task Rezervacija_NovaPrijavaPosleOtkazaneZaIstiTermin_BazaDozvoljava()
     {
-        var termin = TestniEntiteti.NoviTermin(TestniEntiteti.NoviTrener());
-        var clan = TestniEntiteti.NoviClan();
-        await SaBazomAsync(db =>
-        {
-            db.Rezervacije.Add(TestniEntiteti.NovaRezervacija(termin, clan, StatusRezervacije.Otkazana));
-            return db.SaveChangesAsync();
-        });
+        var termin = await NoviTerminUBaziAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));
+        var clan = await NoviKorisnikUBaziAsync(Uloga.Clan);
+        await NovaPrijavaUBaziAsync(termin, clan, StatusRezervacije.Otkazana);
 
-        await SaBazomAsync(db =>
-        {
-            db.Rezervacije.Add(new Rezervacija
-            {
-                TerminId = termin.Id,
-                ClanId = clan.Id,
-                Status = StatusRezervacije.Potvrdjena,
-                KreiranaAt = TestniEntiteti.Sada,
-            });
-            return db.SaveChangesAsync();
-        });
+        await NovaPrijavaUBaziAsync(termin, clan, StatusRezervacije.Potvrdjena);
 
         var brojPrijava = await SaBazomAsync(db => Task.FromResult(db.Rezervacije.Count(r => r.TerminId == termin.Id && r.ClanId == clan.Id)));
         Assert.That(brojPrijava, Is.EqualTo(2));
