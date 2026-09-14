@@ -147,7 +147,6 @@ export function ocistiGreskeForme(forma, globalnaGreska) {
 export function prikaziGreskeForme(forma, greska, globalnaGreska) {
   ocistiGreskeForme(forma, globalnaGreska);
   const neraspodeljene = [];
-  let prvoPolje = null;
 
   for (const [naziv, poruke] of Object.entries(greska instanceof ApiGreska ? greska.greskePolja : {})) {
     const unos = forma.elements.namedItem(naziv);
@@ -160,13 +159,14 @@ export function prikaziGreskeForme(forma, greska, globalnaGreska) {
     unos.setAttribute('aria-invalid', 'true');
     // Server vraća sva prekršena pravila (npr. za prazan naziv i „obavezan“ i „najmanje 2 znaka“); prvo je najkorisnije.
     prikaziPoruku(poruka, poruke[0]);
-    prvoPolje ??= unos;
   }
 
+  // Fokus ide na prvo neispravno polje po redosledu u formi, a ne po redosledu grešaka u odgovoru servera.
+  const prvoNeispravno = forma.querySelector('[aria-invalid="true"]');
   prikaziPoruku(globalnaGreska, neraspodeljene.length > 0
     ? neraspodeljene.join(' ')
-    : prvoPolje !== null ? 'Proverite označena polja.' : porukaGreske(greska));
-  prvoPolje?.focus();
+    : prvoNeispravno !== null ? 'Proverite označena polja.' : porukaGreske(greska));
+  prvoNeispravno?.focus();
 }
 
 /** Onemogućava dugme dok akcija traje, da isti zahtev ne bi bio poslat dva puta. */
