@@ -8,16 +8,19 @@
   <script type="module" src="js/app.js"></script>
 </head>
 <body>
-  <a class="preskoci-na-sadrzaj" href="#sadrzaj">Preskoči na sadržaj</a>
+  <button id="preskoci-na-sadrzaj" class="preskoci-na-sadrzaj" type="button" data-testid="preskoci-na-sadrzaj">Preskoči na sadržaj</button>
 
   <header class="zaglavlje">
-    <p class="naziv-aplikacije">Teretana</p>
+    <div class="zaglavlje-sadrzaj">
+      <a class="naziv-aplikacije" href="#/" data-testid="pocetna-link">Teretana</a>
+      <nav id="navigacija" aria-label="Glavna navigacija"></nav>
+      <div id="profil" class="profil"></div>
+    </div>
   </header>
 
-  <main id="sadrzaj" class="sadrzaj" tabindex="-1">
-    <h1>Rezervacija termina u teretani</h1>
-    <p>Pregled termina, rezervacije i lista čekanja za članove i trenere.</p>
-  </main>
+  <div id="obavestenje" class="obavestenje" role="status" aria-live="polite" data-testid="obavestenje" hidden></div>
+
+  <main id="sadrzaj" class="sadrzaj" tabindex="-1"></main>
 
   <footer class="podnozje">
     <section class="status-sistema" aria-labelledby="status-sistema-naslov">
