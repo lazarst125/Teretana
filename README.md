@@ -32,6 +32,11 @@ dotnet run --project src/Teretana.Api
 
 Aplikacija je dostupna na <http://localhost:5080>, a provera statusa sistema na <http://localhost:5080/health>.
 
+API dokumentacija (van Production okruženja):
+
+- **Swagger UI:** <http://localhost:5080/swagger> — dugme *Authorize* prima token iz `POST /api/auth/prijava`
+- **OpenAPI dokument:** <http://localhost:5080/openapi/v1.json>
+
 Pri pokretanju se primenjuju migracije. U Development okruženju (podrazumevano za `dotnet run`) prazna baza
 se popunjava demonstracionim podacima. Fajl baze je `src/Teretana.Api/teretana.db`.
 
