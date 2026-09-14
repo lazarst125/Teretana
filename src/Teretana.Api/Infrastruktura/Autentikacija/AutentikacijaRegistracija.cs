@@ -62,6 +62,7 @@ public static partial class AutentikacijaRegistracija
             });
 
         servisi.AddAuthorizationBuilder()
+            .AddPolicy(Politike.Clan, politika => politika.RequireRole(nameof(Uloga.Clan)))
             .AddPolicy(Politike.Trener, politika => politika.RequireRole(nameof(Uloga.Trener)));
         servisi.AddSingleton<IPasswordHasher<Korisnik>, PasswordHasher<Korisnik>>();
         servisi.AddSingleton<ITokenServis, TokenServis>();

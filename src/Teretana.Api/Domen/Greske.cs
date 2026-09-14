@@ -28,4 +28,28 @@ public static class Greske
 
     public static DomenskaGreska PocetakUProslosti() =>
         new(VrstaGreske.PoslovnoPravilo, "pocetak-u-proslosti", "Početak termina mora biti u budućnosti.");
+
+    public static DomenskaGreska TerminPopunjen() =>
+        new(VrstaGreske.Konflikt, "termin-popunjen", "Termin je popunjen. Možete se prijaviti na listu čekanja.");
+
+    public static DomenskaGreska TerminImaSlobodnihMesta() =>
+        new(VrstaGreske.Konflikt, "termin-ima-slobodnih-mesta", "Termin ima slobodnih mesta; rezervišite mesto umesto prijave na listu čekanja.");
+
+    public static DomenskaGreska VecPrijavljen() =>
+        new(VrstaGreske.Konflikt, "vec-prijavljen", "Već imate prijavu za ovaj termin.");
+
+    public static DomenskaGreska RezervacijaNePostoji() =>
+        new(VrstaGreske.NijePronadjeno, "rezervacija-ne-postoji", "Rezervacija ne postoji.");
+
+    public static DomenskaGreska RezervacijaOtkazana() =>
+        new(VrstaGreske.Konflikt, "rezervacija-otkazana", "Rezervacija je već otkazana.");
+
+    public static DomenskaGreska RokZaOtkazivanjeIstekao() =>
+        new(VrstaGreske.PoslovnoPravilo, "rok-za-otkazivanje-istekao", "Rok za otkazivanje rezervacije je istekao.");
+
+    public static DomenskaGreska RezervacijaNijePotvrdjena() =>
+        new(VrstaGreske.Konflikt, "rezervacija-nije-potvrdjena", "Prisustvo se evidentira samo za potvrđene rezervacije.");
+
+    public static DomenskaGreska TerminNijePoceo() =>
+        new(VrstaGreske.PoslovnoPravilo, "termin-nije-poceo", "Prisustvo može da se evidentira tek kada termin počne.");
 }
