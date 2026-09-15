@@ -35,8 +35,8 @@ se vidi tek preko pravog HTTP-a. E2E testovi pokrivaju tokove i prikaz, a ne sva
 | Nema `Thread.Sleep`, `Task.Delay`, `[Retry]`, `[Random]` ni fiksnih timeout-a | provereno pretragom kroz `tests/` |
 
 Nezavisnost se dokazuje paralelnim izvršavanjem uz izolovano stanje: vremena iz TRX izveštaja pokazuju da testovi iste
-klase počinju istovremeno. Pre završetka svake faze ceo set je pokrenut tri puta zaredom, bez ijednog pada. Zahtev
-za pokretanjem nasumičnim redosledom je povučen; NUnit to ne podržava bez oslanjanja na interne klase.
+klase počinju istovremeno. Ceo set je pokrenut tri puta zaredom, bez ijednog pada. Testovi se ne pokreću
+nasumičnim redosledom, jer NUnit to ne podržava bez oslanjanja na interne klase.
 
 ## 3. Pokrivenost poslovnih pravila
 

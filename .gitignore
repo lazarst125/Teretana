@@ -3,7 +3,7 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-# Referentni projekti iz Faze 0 (lokalni klonovi, nisu deo ovog repozitorijuma)
+# Lokalni klonovi referentnih projekata (nisu deo ovog repozitorijuma)
 _reference/
 
 # SQLite baze i prateći WAL/SHM fajlovi
