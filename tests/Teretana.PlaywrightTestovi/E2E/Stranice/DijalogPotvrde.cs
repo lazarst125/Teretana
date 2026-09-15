@@ -7,4 +7,6 @@ public sealed class DijalogPotvrde(IPage stranica)
     public async Task PotvrdiAsync() => await stranica.GetByTestId("potvrda-da").ClickAsync();
 
     public async Task OdustaniAsync() => await stranica.GetByTestId("potvrda-ne").ClickAsync();
+
+    public async Task ZatvoriTasteromEscapeAsync() => await stranica.Keyboard.PressAsync("Escape");
 }

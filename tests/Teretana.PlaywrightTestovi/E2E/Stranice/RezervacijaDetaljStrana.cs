@@ -10,9 +10,12 @@ public sealed class RezervacijaDetaljStrana(IPage stranica)
 
     public async Task OtvoriAsync(int idRezervacije) => await stranica.GotoAsync($"/#/rezervacije/{idRezervacije}");
 
+    /// <summary>Otvara dijalog potvrde bez potvrđivanja.</summary>
+    public async Task ZapocniOtkazivanjeAsync() => await DugmeOtkazi.ClickAsync();
+
     public async Task OtkaziAsync()
     {
-        await DugmeOtkazi.ClickAsync();
+        await ZapocniOtkazivanjeAsync();
         await new DijalogPotvrde(stranica).PotvrdiAsync();
     }
 }

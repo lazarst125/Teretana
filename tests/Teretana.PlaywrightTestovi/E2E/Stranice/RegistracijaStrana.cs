@@ -4,6 +4,9 @@ public sealed class RegistracijaStrana(IPage stranica)
 {
     public ILocator GreskaForme => stranica.GetByTestId("registracija-greska");
 
+    /// <param name="polje">Deo test id-ja polja: ime-prezime, email ili lozinka.</param>
+    public ILocator GreskaPolja(string polje) => stranica.GetByTestId($"registracija-{polje}-greska");
+
     public async Task OtvoriAsync() => await stranica.GotoAsync("/#/registracija");
 
     public async Task RegistrujAsync(string imePrezime, string email, string lozinka)

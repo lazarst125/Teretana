@@ -109,4 +109,25 @@ public sealed class RezervacijeE2ETestovi : E2ETest
         await Expect(detalj.StanjeGreske).ToContainTextAsync("Termin ne postoji.");
         await Expect(detalj.DugmePokusajPonovo).ToBeVisibleAsync();
     }
+
+    [Test]
+    public async Task OtkazivanjeRezervacije_EscapeZatvaraDijalog_RezervacijaOstajeAFokusSeVracaNaDugme()
+    {
+        var trener = await Podaci.NoviTrenerAsync();
+        var clan = await Podaci.NoviClanAsync();
+        var idRezervacije = await Podaci.RezervisiAsync(clan, await Podaci.NoviTerminAsync(trener));
+        await PrijaviSeAsync(clan);
+        var rezervacija = new RezervacijaDetaljStrana(Page);
+        var dijalog = new DijalogPotvrde(Page);
+        await rezervacija.OtvoriAsync(idRezervacije);
+        await rezervacija.ZapocniOtkazivanjeAsync();
+        await Expect(dijalog.Dijalog).ToBeVisibleAsync();
+
+        await dijalog.ZatvoriTasteromEscapeAsync();
+
+        await Expect(dijalog.Dijalog).ToHaveCountAsync(0);
+        await Expect(rezervacija.DugmeOtkazi).ToBeFocusedAsync();
+        await Page.ReloadAsync();
+        await Expect(rezervacija.Status).ToHaveAttributeAsync("data-status", "Potvrdjena");
+    }
 }

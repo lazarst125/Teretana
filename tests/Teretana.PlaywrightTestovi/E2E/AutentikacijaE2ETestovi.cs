@@ -20,6 +20,22 @@ public sealed class AutentikacijaE2ETestovi : E2ETest
     }
 
     [Test]
+    public async Task Registracija_KratkaLozinkaPaZauzetEmail_PrikazujePorukeServeraIOstajeNaRegistraciji()
+    {
+        var postojeciClan = await Podaci.NoviClanAsync();
+        var registracija = new RegistracijaStrana(Page);
+        await registracija.OtvoriAsync();
+        await registracija.RegistrujAsync("Novi Član", postojeciClan.Email, "kratka");
+        await Expect(registracija.GreskaPolja("lozinka")).ToHaveTextAsync("Lozinka mora imati između 8 i 100 znakova.");
+
+        await registracija.RegistrujAsync("Novi Član", postojeciClan.Email.ToUpperInvariant(), TestniPodaci.Lozinka);
+
+        await Expect(registracija.GreskaForme).ToHaveTextAsync("Nalog sa ovim email-om već postoji.");
+        await Expect(registracija.GreskaPolja("lozinka")).ToBeHiddenAsync();
+        await Expect(Page).ToHaveURLAsync(new Regex("#/registracija$"));
+    }
+
+    [Test]
     public async Task ZasticenaAdresaBezPrijave_PosleUspesnePrijave_OtvaraTrazenuStranu()
     {
         var clan = await Podaci.NoviClanAsync("Ana Povratak");
