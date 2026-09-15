@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Teretana.Api.Domen;
 
 namespace Teretana.Api.Ugovori.Autentikacija;
 
@@ -23,3 +24,25 @@ public sealed record RegistracijaZahtev
     [StringLength(100, MinimumLength = 8, ErrorMessage = "Lozinka mora imati između 8 i 100 znakova.")]
     public string Lozinka { get; init; } = string.Empty;
 }
+
+public sealed record PrijavaZahtev
+{
+    /// <summary>Email naloga.</summary>
+    /// <example>trener1@teretana.local</example>
+    [Required(ErrorMessage = "Email je obavezan.")]
+    [StringLength(254, ErrorMessage = "Email može imati najviše 254 znaka.")]
+    public string Email { get; init; } = string.Empty;
+
+    /// <summary>Lozinka naloga.</summary>
+    /// <example>Trener123!</example>
+    [Required(ErrorMessage = "Lozinka je obavezna.")]
+    [StringLength(100, ErrorMessage = "Lozinka može imati najviše 100 znakova.")]
+    public string Lozinka { get; init; } = string.Empty;
+}
+
+public sealed record KorisnikOdgovor(int Id, string Email, string ImePrezime, Uloga Uloga)
+{
+    public static KorisnikOdgovor Iz(Korisnik korisnik) => new(korisnik.Id, korisnik.Email, korisnik.ImePrezime, korisnik.Uloga);
+}
+
+public sealed record PrijavaOdgovor(string Token, DateTime Istice, KorisnikOdgovor Korisnik);

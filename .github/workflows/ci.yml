@@ -21,14 +21,14 @@ jobs:
 
       - name: Restore
         run: |
-          dotnet restore Teretana.slnx
+          dotnet restore Teretana.sln
           dotnet tool restore
 
       - name: Provera formata koda
-        run: dotnet format Teretana.slnx --verify-no-changes --no-restore
+        run: dotnet format Teretana.sln --verify-no-changes --no-restore
 
       - name: Build
-        run: dotnet build Teretana.slnx --configuration Release --no-restore
+        run: dotnet build Teretana.sln --configuration Release --no-restore
 
       - name: Komponentni testovi (NUnit)
         run: >-

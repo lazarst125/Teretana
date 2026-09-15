@@ -19,8 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Zajednicko\IzolovanaBaza.cs" Link="Infrastruktura\IzolovanaBaza.cs" />
-    <Compile Include="..\Zajednicko\TestnaKonfiguracija.cs" Link="Infrastruktura\TestnaKonfiguracija.cs" />
+    <Compile Include="..\Zajednicko\TestnaBazaIKonfiguracija.cs" Link="Infrastruktura\TestnaBazaIKonfiguracija.cs" />
   </ItemGroup>
 
   <ItemGroup>

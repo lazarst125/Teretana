@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -80,4 +82,76 @@ public static partial class AutentikacijaRegistracija
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Jwt:Kljuc nije podešen; koristi se privremeni ključ, pa izdati tokeni ne važe posle restarta aplikacije.")]
     private static partial void LogPrivremeniJwtKljuc(ILogger logger);
+}
+
+public static class Politike
+{
+    public const string Clan = nameof(Uloga.Clan);
+
+    public const string Trener = nameof(Uloga.Trener);
+}
+
+internal static class KorisnikIzTokena
+{
+    public static int IdKorisnika(this ClaimsPrincipal korisnik)
+    {
+        var sub = korisnik.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+            ?? throw new InvalidOperationException("Autentifikovani korisnik nema 'sub' claim.");
+        return int.Parse(sub, CultureInfo.InvariantCulture);
+    }
+}
+
+public sealed class JwtPodesavanja
+{
+    public const string Sekcija = "Jwt";
+
+    public string Izdavac { get; set; } = string.Empty;
+
+    public string Publika { get; set; } = string.Empty;
+
+    public string Kljuc { get; set; } = string.Empty;
+
+    public TimeSpan TrajanjeTokena { get; set; }
+
+    public SymmetricSecurityKey KljucZaPotpis() => new(Encoding.UTF8.GetBytes(Kljuc));
+}
+
+public interface ITokenServis
+{
+    IzdatToken Izdaj(Korisnik korisnik);
+}
+
+public sealed record IzdatToken(string Token, DateTime Istice);
+
+internal sealed class TokenServis(IOptions<JwtPodesavanja> podesavanja, TimeProvider vreme) : ITokenServis
+{
+    public const string TipClaimaUloge = "role";
+
+    private readonly JsonWebTokenHandler _handler = new();
+
+    public IzdatToken Izdaj(Korisnik korisnik)
+    {
+        var jwt = podesavanja.Value;
+        var sada = vreme.GetUtcNow().UtcDateTime;
+        var istice = sada.Add(jwt.TrajanjeTokena);
+
+        var token = _handler.CreateToken(new SecurityTokenDescriptor
+        {
+            Issuer = jwt.Izdavac,
+            Audience = jwt.Publika,
+            IssuedAt = sada,
+            NotBefore = sada,
+            Expires = istice,
+            SigningCredentials = new SigningCredentials(jwt.KljucZaPotpis(), SecurityAlgorithms.HmacSha256),
+            Claims = new Dictionary<string, object>
+            {
+                [JwtRegisteredClaimNames.Sub] = korisnik.Id.ToString(CultureInfo.InvariantCulture),
+                [JwtRegisteredClaimNames.Email] = korisnik.Email,
+                [JwtRegisteredClaimNames.Name] = korisnik.ImePrezime,
+                [TipClaimaUloge] = korisnik.Uloga.ToString(),
+            },
+        });
+
+        return new IzdatToken(token, istice);
+    }
 }

@@ -14,3 +14,9 @@ public sealed class Korisnik
 
     public DateTime KreiranAt { get; set; }
 }
+
+public enum Uloga
+{
+    Clan,
+    Trener,
+}

@@ -26,3 +26,10 @@ public sealed class Rezervacija
 
     public bool? Prisustvovao { get; set; }
 }
+
+public enum StatusRezervacije
+{
+    Potvrdjena,
+    NaCekanju,
+    Otkazana,
+}

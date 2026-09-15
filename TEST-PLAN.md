@@ -26,10 +26,10 @@ se vidi tek preko pravog HTTP-a. E2E testovi pokrivaju tokove i prikaz, a ne sva
 
 | Mera | Gde |
 |---|---|
-| Svaki komponentni test dobija novu instancu aplikacije i sopstveni SQLite fajl koji se briše posle testa | `Infrastruktura/KomponentniTest.cs`, `tests/Zajednicko/IzolovanaBaza.cs` |
+| Svaki komponentni test dobija novu instancu aplikacije i sopstveni SQLite fajl koji se briše posle testa | `Infrastruktura/KomponentniTest.cs`, `tests/Zajednicko/TestnaBazaIKonfiguracija.cs` |
 | Svaki komponentni test ima sopstveni sat postavljen na fiksni trenutak; datumi u testovima ne zastarevaju | `KomponentniTest.Vreme` (`FakeTimeProvider`), `TestniEntiteti.Sada` |
 | Paralelno izvršavanje klasa i metoda | `[assembly: Parallelizable(ParallelScope.Fixtures)]`, `[assembly: FixtureLifeCycle(LifeCycle.InstancePerTestCase)]` i `[Parallelizable(ParallelScope.All)]` na baznoj klasi |
-| Playwright klase idu paralelno, svaka sa sopstvenom aplikacijom i bazom; testovi unutar klase dele browser, a svaki dobija novi browser context | `Paralelizacija.cs`, `Infrastruktura/HostovanaAplikacija.cs`, `E2ETest.cs` |
+| Playwright klase idu paralelno, svaka sa sopstvenom aplikacijom i bazom; testovi unutar klase dele browser, a svaki dobija novi browser context | `PokretanjeTestova.cs`, `Infrastruktura/HostovanaAplikacija.cs`, `Infrastruktura/BazneKlase.cs` |
 | API i E2E testovi prave sopstvene podatke sa jedinstvenim email-ovima kroz API; direktno u bazu idu samo trenerski nalog i termin koji je već počeo, jer ih API ne dozvoljava | `Infrastruktura/TestniPodaci.cs` |
 | Nijedan test ne čita demonstracione podatke osim testova samih demonstracionih podataka (test okruženje je `Testing`) | `BazaPodataka/PocetniPodaciTestovi.cs` |
 | Nema `Thread.Sleep`, `Task.Delay`, `[Retry]`, `[Random]` ni fiksnih timeout-a | provereno pretragom kroz `tests/` |

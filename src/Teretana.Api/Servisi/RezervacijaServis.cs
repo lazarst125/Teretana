@@ -214,3 +214,10 @@ internal sealed partial class RezervacijaServis(
     [LoggerMessage(Level = LogLevel.Information, Message = "Trener {TrenerId} je evidentirao prisustvo {Prisustvovao} za rezervaciju {RezervacijaId}")]
     private static partial void LogPrisustvo(ILogger logger, int rezervacijaId, bool prisustvovao, int trenerId);
 }
+
+public sealed class RezervacijePodesavanja
+{
+    public const string Sekcija = "Rezervacije";
+
+    public TimeSpan RokZaOtkazivanje { get; set; }
+}

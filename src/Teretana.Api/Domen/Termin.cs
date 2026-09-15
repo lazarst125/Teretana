@@ -30,3 +30,9 @@ public sealed class Termin
 
     public List<Rezervacija> Rezervacije { get; } = [];
 }
+
+public enum StatusTermina
+{
+    Aktivan,
+    Otkazan,
+}
