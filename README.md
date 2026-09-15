@@ -12,8 +12,8 @@ Svaka API operacija dostupna je i kroz korisnički interfejs.
 | Dokument | Sadržaj |
 |---|---|
 | `README.md` | pokretanje aplikacije i testova, test nalozi, demonstracioni podaci |
-| [`ARHITEKTURA.md`](ARHITEKTURA.md) | struktura, tok zahteva, model podataka, rešenje konkurentnosti, obrazložene odluke |
-| [`TEST-PLAN.md`](TEST-PLAN.md) | nivoi testiranja, pokrivenost poslovnih pravila i API operacija, izveštaji |
+| [`docs/ARHITEKTURA.md`](docs/ARHITEKTURA.md) | struktura, tok zahteva, model podataka, rešenje konkurentnosti, obrazložene odluke |
+| [`docs/TEST-PLAN.md`](docs/TEST-PLAN.md) | nivoi testiranja, pokrivenost poslovnih pravila i API operacija, izveštaji |
 
 ## Preduslovi
 
@@ -32,16 +32,23 @@ Projekat se sastoji iz tri celine koje se pokreću nezavisno:
 
 | Celina | Folder | Opis |
 |---|---|---|
-| Web aplikacija | `src/Teretana.Api` | ASP.NET Core API i frontend (`wwwroot`) |
+| Web aplikacija | `server/` i `client/` | ASP.NET Core API (`server/`) koji servira i frontend (`client/`) |
 | Komponentni testovi (NUnit) | `tests/Teretana.KomponentniTestovi` | testovi nad aplikacijom u procesu, svaki test sa sopstvenom bazom |
 | E2E i API testovi (Playwright) | `tests/Teretana.PlaywrightTestovi` | testovi preko pravog HTTP-a i browsera |
+
+```
+client/     index.html, css/, js/ (ekrani, ruter, API klijent)
+server/     Kontroleri/, Servisi/, Repozitorijumi/, Domen/, Ugovori/, Podaci/, Infrastruktura/
+tests/      Teretana.KomponentniTestovi/, Teretana.PlaywrightTestovi/, Zajednicko/
+docs/       ARHITEKTURA.md, TEST-PLAN.md
+```
 
 Rešenje `Teretana.sln` u korenu otvara sva tri projekta u Visual Studio-u ili Rider-u.
 
 ## Pokretanje aplikacije
 
 ```bash
-dotnet run --project src/Teretana.Api
+dotnet run --project server
 ```
 
 Aplikacija je dostupna na <http://localhost:5080>, a provera statusa sistema na <http://localhost:5080/health>.
@@ -52,12 +59,12 @@ API dokumentacija (van Production okruženja):
 - **OpenAPI dokument:** <http://localhost:5080/openapi/v1.json>
 
 Pri pokretanju se primenjuju migracije. U Development okruženju (podrazumevano za `dotnet run`) prazna baza
-se popunjava demonstracionim podacima. Fajl baze je `src/Teretana.Api/teretana.db`.
+se popunjava demonstracionim podacima. Fajl baze je `server/teretana.db`.
 
 ## Vraćanje baze na početno stanje
 
 ```bash
-dotnet run --project src/Teretana.Api -- --reset-db
+dotnet run --project server -- --reset-db
 ```
 
 Komanda briše bazu, ponovo primenjuje migracije, upisuje demonstracione podatke i završava rad (ne pokreće server).
@@ -85,7 +92,7 @@ ikakvog podešavanja; posledica je da tokeni ne važe posle restarta. Van Develo
 se ne pokreće bez ključa od najmanje 32 bajta, koji se zadaje kroz promenljivu okruženja:
 
 ```bash
-Jwt__Kljuc="<nasumičan niz od najmanje 32 znaka>" dotnet run --project src/Teretana.Api --no-launch-profile
+Jwt__Kljuc="<nasumičan niz od najmanje 32 znaka>" dotnet run --project server --no-launch-profile
 ```
 
 ## Demonstracioni podaci

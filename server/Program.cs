@@ -10,7 +10,12 @@ using Teretana.Api.Servisi;
 
 const string ArgumentZaResetBaze = "--reset-db";
 
-var builder = WebApplication.CreateBuilder([.. args.Where(argument => argument != ArgumentZaResetBaze)]);
+// Frontend stoji u client/ pored server/, pa se statički fajlovi serviraju odatle umesto iz wwwroot.
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = [.. args.Where(argument => argument != ArgumentZaResetBaze)],
+    WebRootPath = Path.Combine("..", "client"),
+});
 
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(opcije =>

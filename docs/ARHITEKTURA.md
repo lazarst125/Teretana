@@ -9,7 +9,7 @@ Projekat se predaje kao tri celine koje se pokreću nezavisno, kako traži speci
 
 | Celina | Projekat | Uloga |
 |---|---|---|
-| Web aplikacija | `src/Teretana.Api` | ASP.NET Core Web API (.NET 10) i frontend koji isti proces servira iz `wwwroot` |
+| Web aplikacija | `server/` i `client/` | ASP.NET Core Web API (.NET 10) i frontend koji isti proces servira iz `client/` |
 | Komponentni testovi (NUnit) | `tests/Teretana.KomponentniTestovi` | aplikacija u procesu (`WebApplicationFactory`), svaki test sa sopstvenom SQLite bazom; plus unit testovi |
 | E2E i API testovi (Playwright, .NET) | `tests/Teretana.PlaywrightTestovi` | aplikacija na pravom Kestrel serveru; API testovi kroz `APIRequestContext`, E2E kroz Chromium |
 
@@ -20,7 +20,7 @@ u `Directory.Packages.props`.
 
 ```mermaid
 flowchart LR
-    B[Browser<br/>wwwroot SPA] -- "fetch /api + Bearer JWT" --> P
+    B[Browser<br/>client SPA] -- "fetch /api + Bearer JWT" --> P
     subgraph API[Teretana.Api]
         P[Middleware<br/>greške, statički fajlovi,<br/>autentikacija, autorizacija] --> K[Kontroleri]
         K --> S[Servisi<br/>poslovna pravila]
@@ -32,7 +32,7 @@ flowchart LR
 ## 2. Struktura aplikacije
 
 ```
-src/Teretana.Api/
+server/
 ├── Program.cs                 sastavljanje servisa i HTTP pipeline-a, argument --reset-db
 ├── Kontroleri/                HTTP sloj: ruta, pravilo pristupa, status koda; bez poslovne logike
 ├── Servisi/                   poslovna pravila (vlasništvo termina, rok, lista čekanja, prisustvo)
@@ -40,8 +40,9 @@ src/Teretana.Api/
 ├── Ugovori/                   ulazni zahtevi (validacija) i izlazni odgovori; entiteti se ne izlažu
 ├── Domen/                     entiteti, statusi, domenske greške, politika otkazivanja
 ├── Podaci/                    DbContext, konfiguracije šeme, migracije, demonstracioni podaci, red čekanja
-├── Infrastruktura/            autentikacija (JWT, politike), obrada grešaka, OpenAPI, status sistema
-└── wwwroot/                   index.html, css/app.css, js/ (api, ruter, sesija, ui, ekrani/)
+└── Infrastruktura/            autentikacija (JWT, politike), obrada grešaka, OpenAPI, status sistema
+
+client/                        index.html, css/app.css, js/ (api, ruter, sesija, ui, ekrani/)
 ```
 
 Slojevi se pozivaju samo naniže: kontroler → servis → repozitorijum. To proverava arhitekturni test

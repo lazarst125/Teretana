@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <RootNamespace>Teretana.Api</RootNamespace>
+    <!-- Frontend se servira iz client/ pored ovog projekta, pa projekat nema wwwroot ni static web assets. -->
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
 
   <ItemGroup>

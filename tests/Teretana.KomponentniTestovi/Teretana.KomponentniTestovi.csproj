@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Teretana.Api\Teretana.Api.csproj" />
+    <ProjectReference Include="..\..\server\Teretana.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>
