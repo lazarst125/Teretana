@@ -11,11 +11,11 @@ Testovi su podeljeni u dve celine koje se pokreću nezavisno, kako traži specif
 | Nivo | Celina i kategorija | Broj | Šta dokazuje | Kako radi |
 |---|---|---|---|---|
 | Unit | `Teretana.KomponentniTestovi`, `Unit` | 19 | granice roka za otkazivanje, validacija zahteva, grane servisa kada uslovni upis u bazi ne uspe posle provere, pravila arhitekture | bez baze i HTTP-a; zavisnosti su NSubstitute lažnjaci, vreme je `FakeTimeProvider` |
-| Komponentni | `Teretana.KomponentniTestovi`, `Komponentni` | 114 | svaka API operacija sa uspešnim i neuspešnim ishodima i tačnim status kodom, ograničenja baze, konkurentnost, demonstracioni podaci, OpenAPI ugovor | aplikacija u procesu (`WebApplicationFactory`), sopstvena SQLite baza i sopstveni lažni sat po testu; test sme da čita i piše bazu da bi pripremio stanje ili dokazao ograničenje |
-| API | `Teretana.PlaywrightTestovi`, `API` | 5 | tokovi preko pravog HTTP-a i Kestrel servera: Bearer zaglavlje, vreme sa zonom u query string-u, lista čekanja između više korisnika, istovremeni zahtevi preko mreže | Playwright `APIRequestContext` nad aplikacijom na slobodnom portu, baza po test klasi |
-| E2E | `Teretana.PlaywrightTestovi`, `E2E` | 18 | kompletni tokovi kroz UI za člana i trenera, poruke grešaka, pristupačnost fokusa, prikaz na telefonu, XSS | Chromium, Page Object Model, lokatori samo po `data-testid`, web-first `Expect` asercije |
+| Komponentni | `Teretana.KomponentniTestovi`, `Komponentni` | 131 | svaka API operacija sa uspešnim i neuspešnim ishodima i tačnim status kodom, matrica pravila pristupa (401 i 403) za svaku zaštićenu operaciju, ograničenja baze, konkurentnost, demonstracioni podaci, OpenAPI ugovor | aplikacija u procesu (`WebApplicationFactory`), sopstvena SQLite baza i sopstveni lažni sat po testu; test sme da čita i piše bazu da bi pripremio stanje ili dokazao ograničenje |
+| API | `Teretana.PlaywrightTestovi`, `API` | 8 | tokovi preko pravog HTTP-a i Kestrel servera: Bearer zaglavlje, vreme sa zonom u query string-u, izmena i brisanje termina, lista čekanja između više korisnika, prisustvo i „moje rezervacije“, istovremeni zahtevi preko mreže, oblik svake vrste greške (400/401/403/404/409/422) | Playwright `APIRequestContext` nad aplikacijom na slobodnom portu, baza po test klasi |
+| E2E | `Teretana.PlaywrightTestovi`, `E2E` | 22 | kompletni tokovi kroz UI za člana i trenera, unos parametara (filteri, sortiranje, straničenje), poruke grešaka, dijalog potvrde i fokus, prikaz na telefonu, XSS | Chromium, Page Object Model, lokatori samo po `data-testid`, web-first `Expect` asercije |
 
-Ukupno **156** testova: 133 u celini komponentnih testova i 23 u Playwright celini.
+Ukupno **180** testova: 150 u celini komponentnih testova i 30 u Playwright celini.
 
 **Zašto ovakva raspodela.** Specifikacija traži najmanje tri komponentna testa po API operaciji, pa je najviše
 testova na komponentnom nivou; tamo je i najjeftinije proveriti tačan status kod, telo odgovora i stanje baze.
@@ -46,7 +46,7 @@ za pokretanjem nasumičnim redosledom je povučen; NUnit to ne podržava bez osl
 | 2 | Dva istovremena zahteva za poslednje mesto: tačno jedan prolazi, drugi dobija jasan odgovor | **Komponentni**, deterministički: ishod ne sme da zavisi od tajminga | `DvaIstovremenaZahtevaZaPoslednjeMesto_TacnoJedanDobijaMestoADrugiDobija409TerminPopunjen` (dva paralelna HTTP zahteva, 201 + 409 `termin-popunjen`, brojač jednak broju potvrđenih), `DvaKontekstaKojaObaVideSlobodnoMesto_UslovnoZauzimanjePropustaSamoPrvog`, `Termin_BrojPotvrdjenihVeciOdKapaciteta_BazaOdbija`, `Rezervacija_PunTermin_Vraca409TerminPopunjen`; API `DvaIstovremenaZahtevaZaPoslednjeMesto_PrekoKestrela_TacnoJedanDobijaMesto` |
 | 3 | Otkazivanje tačno na granici roka, neposredno pre i posle | **Unit i komponentni**, jer su granice čista funkcija vremena, a lažni sat ih pogađa u sekundu | `Otkazivanje_SekundPreIstekaRoka_Vraca204`, `Otkazivanje_TacnoUTrenutkuIstekaRoka_Vraca204`, `Otkazivanje_SekundPosleIstekaRoka_Vraca422RokZaOtkazivanjeIstekao`; unit `RokJeIstekao_SekundPreIstekaRoka_JosNije`, `RokJeIstekao_TacnoUTrenutkuIstekaRoka_JosNije`, `RokJeIstekao_SekundPosleIstekaRoka_Jeste`, `Otkazivanje_PotvrdjenaRezervacijaPosleIstekaRoka_OdbijaSeIRepozitorijumNeOtkazuje`; E2E `PotvrdjenaRezervacija_PosleIstekaRoka_NemaOtkazivanjaIObjasnjavaZasto`, `NoviClan_RegistrujeSeRezervisePaOtkazujePreRoka_MestoSeOslobadja` |
 | 4 | Kada se mesto oslobodi, prvi sa liste čekanja automatski prelazi u rezervaciju | **Komponentni**, jer je to transakcija nad više redova čiji se ishod proverava u bazi | `Otkazivanje_PotvrdjenaRezervacijaSaListomCekanja_PrviSaListePostajePotvrdjenADrugiIDaljeCeka`, `Otkazivanje_PotvrdjenaRezervacijaBezListeCekanja_SmanjujeBrojPotvrdjenih`, `PrijavaNaListuCekanja_PunTermin_Vraca201NaCekanjuIzaRanijePrijavljenih`, `Polaznici_TerminSaPotvrdjenimICekanjem_VracaPotvrdjeneIListuCekanjaPoVremenuPrijave`; API `PoslednjeMestoListaCekanjaIOtkazivanje_ClanSaListeAutomatskiDobijaMesto_PrekoHttp`; E2E `PopunjenTermin_KadaPotvrdjeniClanOtkaze_PrviSaListeCekanjaAutomatskiDobijaMesto` (dva browser context-a) |
-| 5 | Član ne sme da pristupi trenerskim operacijama (kreiranje, izmena, brisanje termina, uvid u polaznike) | **Komponentni**, jer je autorizacija HTTP ugovor; arhitekturni test sprečava da nova akcija ostane bez pravila | `Kreiranje_Clan_Vraca403`, `Izmena_Clan_Vraca403`, `Brisanje_Clan_Vraca403`, `Polaznici_Clan_Vraca403`, `Izmena_TudjiTermin_Vraca403TudjiTermin`, `Otkazivanje_TudjiTermin_Vraca403TudjiTermin`, `Prisustvo_RezervacijaNaTudjemTerminu_Vraca403TudjiTermin`; unit `SvakaAkcijaKontrolera_ImaEksplicitnoPraviloPristupa`; E2E `ClanNaTrenerskojAdresi_VidiNematePristupINemaTrenerskuNavigaciju` |
+| 5 | Član ne sme da pristupi trenerskim operacijama (kreiranje, izmena, brisanje termina, uvid u polaznike) | **Komponentni**, jer je autorizacija HTTP ugovor; arhitekturni test sprečava da nova akcija ostane bez pravila | `OperacijaNamenjenaDrugojUlozi_Vraca403IPodaciOstajuIsti` (11 slučajeva: član na svakoj trenerskoj operaciji i trener na svakoj operaciji člana, nad postojećim terminom i rezervacijom, uz proveru da se ništa nije promenilo), `ZasticenaOperacija_BezTokena_Vraca401IPodaciOstajuIsti` (14 slučajeva), `Polaznici_TudjiTermin_Vraca403TudjiTermin`, `Izmena_TudjiTermin_Vraca403TudjiTermin`, `Otkazivanje_TudjiTermin_Vraca403TudjiTermin`, `Prisustvo_RezervacijaNaTudjemTerminu_Vraca403TudjiTermin`; unit `SvakaAkcijaKontrolera_ImaEksplicitnoPraviloPristupa`; E2E `ClanNaTrenerskojAdresi_VidiNematePristupINemaTrenerskuNavigaciju` |
 | 6 | Rezervacija termina koji je već prošao ili ga je trener otkazao | **Komponentni** | `Rezervacija_TerminKojiJePoceo_Vraca422TerminJePoceo`, `Rezervacija_OtkazanTermin_Vraca409TerminOtkazan`, `PrijavaNaListuCekanja_OtkazanTermin_Vraca409TerminOtkazan`, `Otkazivanje_AktivanTerminSaPrijavama_OtkazujeTerminISvePrijaveIBrojacJeNula`; E2E `OtkazivanjeTermina_ClanSaRezervacijomVidiDaJeTerminOtkazan` |
 | 7 | Brisanje ili izmena termina na kom već postoje rezervacije | **Komponentni i E2E**: baza čuva pravilo i kad se servis zaobiđe, a korisnik mora da vidi razlog | `Izmena_TerminSaAktivnomPrijavom_Vraca409TerminImaPrijaveIPodaciOstajuIsti`, `Brisanje_TerminSaOtkazanomPrijavom_Vraca409ITerminOstaje`, `BrisanjeMimoServisa_TerminSaPrijavom_BazaOdbijaStranimKljucem`, `BrisanjeURepozitorijumu_PrijavaNastalaPosleProvereUServisu_VracaFalseITerminOstaje`; unit `Izmena_PrijavaNastalaPosleProvere_OdbijaSeSaTerminImaPrijave`; E2E `BrisanjeTerminaSaRezervacijom_PrikazujeKonfliktITerminOstaje`, `IzmenaTerminaSaRezervacijom_PrikazujeKonfliktUFormi` |
 
@@ -59,35 +59,40 @@ pozivaju operaciju preko HTTP-a (slučajevi `[TestCase]` se broje pojedinačno);
 |---|---|---|---|---|
 | 1 | `POST /api/auth/registracija` | 5 | 201, 400, 409 | uloga iz tela se ignoriše; dupli email kroz jedinstveni indeks; API i E2E tok |
 | 2 | `POST /api/auth/prijava` | 4 | 200, 400, 401 | isti odgovor za nepostojeći email i pogrešnu lozinku; E2E |
-| 3 | `GET /api/auth/ja` | 5 | 200, 401 (bez tokena, drugi ključ, istekao, obrisan korisnik) | API tok |
-| 4 | `GET /api/termini` | 12 | 200, 400, 401 | straničenje, prazna lista, opseg datuma, samo slobodni, status, svih šest sortiranja; API tok |
-| 5 | `GET /api/termini/{id}` | 3 | 200, 401, 404 | pozicija na čekanju; E2E stanje greške |
-| 6 | `POST /api/termini` | 5 | 201, 400, 403, 422 | serverska polja iz tela se ignorišu; E2E forma |
-| 7 | `PUT /api/termini/{id}` | 7 | 200, 403, 404, 409, 422 | + 2 unit (trka); E2E 409 |
-| 8 | `DELETE /api/termini/{id}` | 5 | 204, 403, 409 | FK u bazi i trka u repozitorijumu; E2E 409 |
-| 9 | `POST /api/termini/{id}/otkazivanje` | 4 | 200, 403, 409, 422 | + 2 unit (trka); E2E |
-| 10 | `GET /api/termini/{id}/polaznici` | 3 | 200, 403 | redosled liste čekanja |
-| 11 | `POST /api/termini/{id}/rezervacije` | 10 | 201, 403, 409, 422 | konkurentnost; + 1 unit; API i E2E |
-| 12 | `POST /api/termini/{id}/lista-cekanja` | 4 | 201, 409 | E2E |
-| 13 | `GET /api/rezervacije/moje` | 4 | 200, 403 | straničenje, filter, sortiranje; E2E prazno stanje |
-| 14 | `GET /api/rezervacije/{id}` | 3 | 200, 404 (i za tuđu) | rok i `mozeDaSeOtkaze` u odgovoru |
-| 15 | `PUT /api/rezervacije/{id}/prisustvo` | 4 | 200, 403, 409, 422 | + 1 unit (trka); E2E |
-| 16 | `DELETE /api/rezervacije/{id}` | 7 | 204, 404, 409, 422 | granice roka; + 2 unit servisa i 4 unit politike roka; E2E |
+| 3 | `GET /api/auth/ja` | 6 | 200, 401 (bez tokena, drugi ključ, istekao, obrisan korisnik) | API tok |
+| 4 | `GET /api/termini` | 12 | 200, 400, 401 | straničenje, prazna lista, opseg datuma, samo slobodni, status, svih šest sortiranja; API tok; E2E filteri, sortiranje i straničenje |
+| 5 | `GET /api/termini/{id}` | 3 | 200, 401, 404 | pozicija na čekanju; API tok; E2E stanje greške |
+| 6 | `POST /api/termini` | 6 | 201, 400, 401, 403, 422 | serverska polja iz tela se ignorišu; API tok; E2E forma |
+| 7 | `PUT /api/termini/{id}` | 8 | 200, 401, 403, 404, 409, 422 | + 2 unit (trka); API tok; E2E 409 |
+| 8 | `DELETE /api/termini/{id}` | 6 | 204, 401, 403, 409 | FK u bazi i trka u repozitorijumu; API tok; E2E 409 |
+| 9 | `POST /api/termini/{id}/otkazivanje` | 6 | 200, 401, 403, 409, 422 | + 2 unit (trka); API tok; E2E |
+| 10 | `GET /api/termini/{id}/polaznici` | 4 | 200, 401, 403 | redosled liste čekanja; API tok; E2E |
+| 11 | `POST /api/termini/{id}/rezervacije` | 11 | 201, 401, 403, 409, 422 | konkurentnost; + 1 unit; API i E2E |
+| 12 | `POST /api/termini/{id}/lista-cekanja` | 6 | 201, 401, 403, 409 | API i E2E |
+| 13 | `GET /api/rezervacije/moje` | 5 | 200, 401, 403 | straničenje, filter, sortiranje; API tok; E2E prazno stanje |
+| 14 | `GET /api/rezervacije/{id}` | 5 | 200, 401, 403, 404 (i za tuđu) | rok i `mozeDaSeOtkaze` u odgovoru; API i E2E |
+| 15 | `PUT /api/rezervacije/{id}/prisustvo` | 6 | 200, 401, 403, 409, 422 | + 1 unit (trka); API tok; E2E |
+| 16 | `DELETE /api/rezervacije/{id}` | 9 | 204, 401, 403, 404, 409, 422 | granice roka; + 2 unit servisa i 4 unit politike roka; API i E2E |
 | 17 | `GET /health` | 3 | 200, 503 | API i E2E |
 
 Ostali komponentni testovi: ograničenja baze (6), demonstracioni podaci i reset (13), obrada grešaka (2),
 OpenAPI dokument i njegova nedostupnost u Production-u (4), pokretanje bez JWT ključa (1).
 
-Status kodovi koji za neku operaciju nisu u tabeli (npr. 401 za operacije 6–16) proizilaze iz istog
-`[Authorize]` atributa i iste obrade kao testirani slučajevi; test `Dokument_ZaSvakuOperaciju_DokumentujeTacnoStatusKodoveIzUgovora`
-proverava da OpenAPI dokument za svaku operaciju navodi tačno dokumentovani skup kodova.
+Kodovi 401 i 403 za operacije 3–16 dolaze iz matrice `PravilaPristupaTestovi`: svaka zaštićena operacija bez tokena
+vraća 401, a svaka operacija namenjena drugoj ulozi vraća 403 bez koda domenske greške (odbija je politika, a ne
+servis). Zahtevi gađaju termin i rezervaciju koji postoje, i test posle odbijanja proverava da se u bazi ništa nije
+promenilo. Test `Dokument_ZaSvakuOperaciju_DokumentujeTacnoStatusKodoveIzUgovora` dodatno proverava da OpenAPI
+dokument za svaku operaciju navodi tačno dokumentovani skup kodova. Playwright test
+`SvakaVrstaGreske_PrekoHttp_StizeKaoProblemDetailsSaStatusomIKodom` jednom, preko pravog servera, proverava da svaka
+vrsta greške stiže kao `application/problem+json` sa poljima `status`, `type`, `traceId` i, gde postoji, `code`.
 
 ## 5. E2E tokovi
 
 | Klasa | Tok |
 |---|---|
-| `AutentikacijaE2ETestovi` | pogrešna lozinka; povratak na traženu stranu posle prijave; član na trenerskoj adresi vidi „Nemate pristup"; odjava |
-| `RezervacijeE2ETestovi` | registracija → rezervacija → otkazivanje pre roka; nema otkazivanja posle roka; automatsko unapređenje sa liste čekanja (dva korisnika); nema druge rezervacije istog termina; prazno stanje „Moje rezervacije"; stanje greške za nepostojeći termin |
+| `AutentikacijaE2ETestovi` | pogrešna lozinka; registracija sa prekratkom lozinkom (poruka ispod polja) pa sa zauzetim email-om (poruka forme); povratak na traženu stranu posle prijave; član na trenerskoj adresi vidi „Nemate pristup"; odjava |
+| `RasporedE2ETestovi` | filter po treneru i slobodnim mestima uz sortiranje po nazivu (tačan skup i redosled); veličina strane i prelazak na sledeću stranu |
+| `RezervacijeE2ETestovi` | registracija → rezervacija → otkazivanje pre roka; nema otkazivanja posle roka; automatsko unapređenje sa liste čekanja (dva korisnika); nema druge rezervacije istog termina; prazno stanje „Moje rezervacije"; stanje greške za nepostojeći termin; Escape zatvara dijalog potvrde, fokus se vraća na dugme, a rezervacija ostaje |
 | `TreneriE2ETestovi` | prazna forma (poruke ispod polja i fokus na prvo polje) pa kreiranje; 409 pri brisanju i izmeni termina sa rezervacijom; otkazivanje termina kako ga vidi član; evidencija prisustva; naziv sa HTML-om prikazan kao tekst |
 | `ResponsivniPrikazE2ETestovi` | raspored i polaznici na širini telefona bez horizontalnog skrola stranice |
 | `StatusSistemaE2ETestovi` | provera statusa sistema iz podnožja |
