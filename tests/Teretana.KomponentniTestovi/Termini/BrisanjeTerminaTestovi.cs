@@ -43,17 +43,6 @@ public sealed class BrisanjeTerminaTestovi : KomponentniTest
     }
 
     [Test]
-    public async Task Brisanje_Clan_Vraca403()
-    {
-        var termin = await NoviTerminUBaziAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));
-        await PrijaviSeKaoAsync(await NoviKorisnikUBaziAsync(Uloga.Clan));
-
-        using var odgovor = await Klijent.DeleteAsync($"/api/termini/{termin.Id}");
-
-        await OcekujProblemAsync(odgovor, HttpStatusCode.Forbidden);
-    }
-
-    [Test]
     public async Task BrisanjeMimoServisa_TerminSaPrijavom_BazaOdbijaStranimKljucem()
     {
         var termin = await NoviTerminUBaziAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));

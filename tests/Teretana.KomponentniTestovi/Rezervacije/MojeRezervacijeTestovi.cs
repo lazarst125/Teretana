@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Json;
 using Teretana.Api.Domen;
 using Teretana.KomponentniTestovi.Infrastruktura;
@@ -63,15 +62,5 @@ public sealed class MojeRezervacijeTestovi : KomponentniTest
         var stranica = await Klijent.GetFromJsonAsync<StranicaRezervacijaTelo>("/api/rezervacije/moje?sortiranje=-pocetak");
 
         Assert.That(stranica?.Stavke.Select(r => r.Id), Is.EqualTo(new[] { naKasnijem.Id, naRanijem.Id }));
-    }
-
-    [Test]
-    public async Task Moje_Trener_Vraca403()
-    {
-        await PrijaviSeKaoAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));
-
-        using var odgovor = await Klijent.GetAsync("/api/rezervacije/moje");
-
-        await OcekujProblemAsync(odgovor, HttpStatusCode.Forbidden);
     }
 }

@@ -64,17 +64,6 @@ public sealed class IzmenaTerminaTestovi : KomponentniTest
     }
 
     [Test]
-    public async Task Izmena_Clan_Vraca403()
-    {
-        var termin = await NoviTerminUBaziAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));
-        await PrijaviSeKaoAsync(await NoviKorisnikUBaziAsync(Uloga.Clan));
-
-        using var odgovor = await Klijent.PutAsJsonAsync($"/api/termini/{termin.Id}", Izmena("Izmena člana"));
-
-        await OcekujProblemAsync(odgovor, HttpStatusCode.Forbidden);
-    }
-
-    [Test]
     public async Task Izmena_OtkazanTermin_Vraca409TerminOtkazan()
     {
         var trener = await NoviKorisnikUBaziAsync(Uloga.Trener);

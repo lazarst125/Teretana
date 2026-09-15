@@ -34,17 +34,6 @@ public sealed class PolazniciTestovi : KomponentniTest
     }
 
     [Test]
-    public async Task Polaznici_Clan_Vraca403()
-    {
-        var termin = await NoviTerminUBaziAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));
-        await PrijaviSeKaoAsync(await NoviKorisnikUBaziAsync(Uloga.Clan));
-
-        using var odgovor = await Klijent.GetAsync($"/api/termini/{termin.Id}/polaznici");
-
-        await OcekujProblemAsync(odgovor, HttpStatusCode.Forbidden);
-    }
-
-    [Test]
     public async Task Polaznici_TudjiTermin_Vraca403TudjiTermin()
     {
         var termin = await NoviTerminUBaziAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));

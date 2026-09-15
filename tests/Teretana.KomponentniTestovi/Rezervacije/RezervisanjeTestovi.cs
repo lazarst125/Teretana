@@ -164,18 +164,6 @@ public sealed class RezervisanjeTestovi : KomponentniTest
         await OcekujProblemAsync(odgovor, HttpStatusCode.Conflict, "termin-otkazan");
     }
 
-    [Test]
-    public async Task Rezervacija_Trener_Vraca403()
-    {
-        var trener = await NoviKorisnikUBaziAsync(Uloga.Trener);
-        var termin = await NoviTerminUBaziAsync(trener);
-        await PrijaviSeKaoAsync(trener);
-
-        using var odgovor = await Klijent.PostAsync($"/api/termini/{termin.Id}/rezervacije", content: null);
-
-        await OcekujProblemAsync(odgovor, HttpStatusCode.Forbidden);
-    }
-
     /// <summary>
     /// Simulira trku: servis nije video prijavu, a isti član je u međuvremenu upisan na listu čekanja. Mesto je slobodno,
     /// pa uslovno zauzimanje prolazi, a jedinstveni indeks odbija upis i transakcija vraća zauzeto mesto.

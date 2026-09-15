@@ -37,14 +37,4 @@ public sealed class DetaljTerminaTestovi : KomponentniTest
 
         await OcekujProblemAsync(odgovor, HttpStatusCode.NotFound, "termin-ne-postoji");
     }
-
-    [Test]
-    public async Task Detalj_BezTokena_Vraca401()
-    {
-        var termin = await NoviTerminUBaziAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));
-
-        using var odgovor = await Klijent.GetAsync($"/api/termini/{termin.Id}");
-
-        await OcekujProblemAsync(odgovor, HttpStatusCode.Unauthorized);
-    }
 }

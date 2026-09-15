@@ -23,6 +23,7 @@ public sealed class ListaCekanjaTestovi : KomponentniTest
         Assert.Multiple(() =>
         {
             Assert.That(odgovor.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+            Assert.That(odgovor.Headers.Location?.ToString(), Does.EndWith($"/api/rezervacije/{prijava?.Id}"));
             Assert.That(prijava?.Status, Is.EqualTo("NaCekanju"));
             Assert.That(prijava?.PozicijaNaCekanju, Is.EqualTo(2));
             Assert.That(brojPotvrdjenih, Is.EqualTo(1));

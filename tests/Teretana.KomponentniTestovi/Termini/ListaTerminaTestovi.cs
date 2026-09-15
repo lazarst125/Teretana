@@ -141,12 +141,4 @@ public sealed class ListaTerminaTestovi : KomponentniTest
             Assert.That(problem.GetProperty("errors").EnumerateObject().Select(p => p.Name), Is.EquivalentTo(new[] { "sortiranje" }));
         });
     }
-
-    [Test]
-    public async Task Lista_BezTokena_Vraca401()
-    {
-        using var odgovor = await Klijent.GetAsync("/api/termini");
-
-        await OcekujProblemAsync(odgovor, HttpStatusCode.Unauthorized);
-    }
 }

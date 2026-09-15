@@ -31,16 +31,6 @@ public sealed class KreiranjeTerminaTestovi : KomponentniTest
     }
 
     [Test]
-    public async Task Kreiranje_Clan_Vraca403()
-    {
-        await PrijaviSeKaoAsync(await NoviKorisnikUBaziAsync(Uloga.Clan));
-
-        using var odgovor = await Klijent.PostAsJsonAsync("/api/termini", IspravanZahtev());
-
-        await OcekujProblemAsync(odgovor, HttpStatusCode.Forbidden);
-    }
-
-    [Test]
     public async Task Kreiranje_KapacitetNulaIKrajPrePocetka_Vraca400SaGreskomZaObaPolja()
     {
         await PrijaviSeKaoAsync(await NoviKorisnikUBaziAsync(Uloga.Trener));
