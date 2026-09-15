@@ -44,4 +44,28 @@ public sealed class TerminiApiTestovi : ApiTest
             Assert.That(teloDetalja.GetProperty("mojaPrijava").ValueKind, Is.EqualTo(JsonValueKind.Null));
         });
     }
+
+    [Test]
+    public async Task TrenerMenjaPaBriseTerminBezPrijava_PosleBrisanjaTerminViseNePostoji_PrekoHttp()
+    {
+        var trener = await Podaci.NoviTrenerAsync();
+        var idTermina = await Podaci.NoviTerminAsync(trener, kapacitet: 5);
+        var noviPocetak = DateTimeOffset.UtcNow.AddDays(4);
+
+        var izmena = await Api.PutAsync($"/api/termini/{idTermina}", SaTokenom(trener, new { naziv = "Izmenjen preko HTTP-a", pocetak = noviPocetak, kraj = noviPocetak.AddHours(2), kapacitet = 7 }));
+        var teloIzmene = (await izmena.JsonAsync())!.Value;
+        var brisanje = await Api.DeleteAsync($"/api/termini/{idTermina}", SaTokenom(trener));
+        var posleBrisanja = await Api.GetAsync($"/api/termini/{idTermina}", SaTokenom(trener));
+        var problem = (await posleBrisanja.JsonAsync())!.Value;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(izmena.Status, Is.EqualTo(200));
+            Assert.That(teloIzmene.GetProperty("naziv").GetString(), Is.EqualTo("Izmenjen preko HTTP-a"));
+            Assert.That(teloIzmene.GetProperty("kapacitet").GetInt32(), Is.EqualTo(7));
+            Assert.That(brisanje.Status, Is.EqualTo(204));
+            Assert.That(posleBrisanja.Status, Is.EqualTo(404));
+            Assert.That(problem.GetProperty("code").GetString(), Is.EqualTo("termin-ne-postoji"));
+        });
+    }
 }

@@ -51,4 +51,33 @@ public sealed class RezervacijeApiTestovi : ApiTest
 
         Assert.That(odgovori.Select(o => o.Status), Is.EquivalentTo(new[] { 201, 409 }));
     }
+
+    [Test]
+    public async Task TrenerEvidentiraPrisustvo_ClanGaVidiUMojimRezervacijama_PrekoHttp()
+    {
+        var trener = await Podaci.NoviTrenerAsync();
+        var clan = await Podaci.NoviClanAsync();
+        var idTermina = await Podaci.NoviTerminAsync(trener);
+        var idRezervacije = await Podaci.RezervisiAsync(clan, idTermina);
+        await Podaci.PomeriTerminAsync(idTermina, DateTime.UtcNow.AddMinutes(-30), DateTime.UtcNow.AddMinutes(30));
+
+        var prisustvo = await Api.PutAsync($"/api/rezervacije/{idRezervacije}/prisustvo", SaTokenom(trener, new { prisustvovao = true }));
+        var mojeRezervacije = await Api.GetAsync("/api/rezervacije/moje", SaTokenom(clan, parametri: new()
+        {
+            ["status"] = "Potvrdjena",
+            ["velicinaStranice"] = 1,
+        }));
+        var stranica = (await mojeRezervacije.JsonAsync())!.Value;
+        var stavka = stranica.GetProperty("stavke").EnumerateArray().Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(prisustvo.Status, Is.EqualTo(200));
+            Assert.That(mojeRezervacije.Status, Is.EqualTo(200));
+            Assert.That(stranica.GetProperty("ukupnoStavki").GetInt32(), Is.EqualTo(1));
+            Assert.That(stavka.GetProperty("id").GetInt32(), Is.EqualTo(idRezervacije));
+            Assert.That(stavka.GetProperty("prisustvovao").GetBoolean(), Is.True);
+            Assert.That(stavka.GetProperty("mozeDaSeOtkaze").GetBoolean(), Is.False);
+        });
+    }
 }
