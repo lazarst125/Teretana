@@ -1,8 +1,7 @@
 # ARHITEKTURA
 
 Ovaj dokument opisuje kako je aplikacija za rezervaciju termina u teretani organizovana, kako teku podaci i
-zašto su donete ključne odluke. Uputstvo za pokretanje je u `README.md`, strategija testiranja u `TEST-PLAN.md`,
-a analiza referentnih projekata u `ANALIZA.md`.
+zašto su donete ključne odluke. Uputstvo za pokretanje je u `README.md`, a strategija testiranja u `TEST-PLAN.md`.
 
 ## 1. Pregled
 
@@ -207,7 +206,7 @@ izolaciju, pa se broj potvrđenih čuva u terminu.
 | Odluka | Odbačena alternativa | Razlog |
 |---|---|---|
 | Jedan projekat aplikacije sa slojevima kao folderima | više projekata (clean architecture) | dovoljno za aplikaciju ove veličine; granice slojeva čuvaju arhitekturni testovi |
-| SQLite sa EF Core migracijama primenjenim pri startu | `EnsureCreated`, serverska baza | pokretanje iz čistog klona bez instalacije; migracije dozvoljavaju promenu šeme; oba referentna projekta sa predmeta koriste SQLite |
+| SQLite sa EF Core migracijama primenjenim pri startu | `EnsureCreated`, serverska baza | pokretanje iz čistog klona bez instalacije; migracije dozvoljavaju promenu šeme |
 | Poslovna pravila i u servisu i u šemi baze | provera samo u kodu | servis daje jasnu poruku, baza garantuje ispravnost i pri trci ili upisu mimo servisa |
 | DTO na granici API-ja, entiteti se ne izlažu | vraćanje entiteta | nema mass-assignment-a; ugovor API-ja ne zavisi od šeme (test `Kreiranje_TeloSaServerskimPoljima_IgnoriseTrenerStatusIBrojPotvrdjenih`) |
 | Domenske greške sa kodom i jedan handler | `try/catch` u kontrolerima | jedan format greške za ceo API; testovi i UI proveravaju kod, a ne tekst |

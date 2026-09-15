@@ -14,7 +14,6 @@ Svaka API operacija dostupna je i kroz korisnički interfejs.
 | `README.md` | pokretanje aplikacije i testova, test nalozi, demonstracioni podaci |
 | [`ARHITEKTURA.md`](ARHITEKTURA.md) | struktura, tok zahteva, model podataka, rešenje konkurentnosti, obrazložene odluke |
 | [`TEST-PLAN.md`](TEST-PLAN.md) | nivoi testiranja, pokrivenost poslovnih pravila i API operacija, izveštaji |
-| [`ANALIZA.md`](ANALIZA.md) | analiza referentnih projekata i gde je svaki nedostatak rešen u ovom projektu |
 
 ## Preduslovi
 
@@ -36,6 +35,8 @@ Projekat se sastoji iz tri celine koje se pokreću nezavisno:
 | Web aplikacija | `src/Teretana.Api` | ASP.NET Core API i frontend (`wwwroot`) |
 | Komponentni testovi (NUnit) | `tests/Teretana.KomponentniTestovi` | testovi nad aplikacijom u procesu, svaki test sa sopstvenom bazom |
 | E2E i API testovi (Playwright) | `tests/Teretana.PlaywrightTestovi` | testovi preko pravog HTTP-a i browsera |
+
+Rešenje `Teretana.sln` u korenu otvara sva tri projekta u Visual Studio-u ili Rider-u.
 
 ## Pokretanje aplikacije
 
